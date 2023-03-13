@@ -3,7 +3,7 @@ from Token import *
 
 
 digit = {"0","1","2","3","4","5","6","7","8","9"}
-symbols = {";",":","{","}","[","]","(",")","<"}
+symbols = {";",":","{","}","[","]","(",")","<","*","+", "-"}
 
 
 
@@ -137,13 +137,21 @@ class Tokenizer:
 
             # matching comments using states starting from 11
             elif state == 0 and input == "/":
+                lexeme += input
                 input = self.file.read(1)
                 state = 11
 
 
             elif state == 11 and input == "*":
                 input = self.file.read(1)
+                lexeme = ""
                 state = 12
+
+
+            elif state == 11 and input != "*":
+                self.Character_buffer = input
+                state = 7
+
 
 
             elif state == 12 and input != "*":
@@ -180,10 +188,10 @@ class Tokenizer:
         
         if lexeme == "\n" :
             self.line += 1
-
+        
         new_token = Token(lexeme, TokenType,token_list,self.line)
         
-        if lexeme not in symbol_table and TokenType != Type.WHITESPACE and TokenType != Type.COMMENT:
+        if lexeme not in symbol_table and (TokenType == Type.ID or TokenType == Type.KEYWORD):
             symbol_table.append(lexeme)
             
         

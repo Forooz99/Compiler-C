@@ -3,17 +3,6 @@ from Token import *
 
 # Alireza Foroodniya 99105645, Foroozan Iraji 99105272
 
-# token type: NUM / ID / KEYWORD / SYMBOL / COMMENT / WHITESPACE
-# list for each type except comment, whitespace(these will be ignored):
-
-
-# class Type(Enum):
-#     KEYWORD = 1
-#     ID = 2
-#     NUM = 3
-#     SYMBOL = 4
-#     COMMENT = 5
-#     WHITESPACE = 6
 
 
 
@@ -22,6 +11,7 @@ def main():
     file = open("input.txt", "r")
     symbol_file = open("symbol_table.txt", "w")
     token_file = open("tokens.txt", "w")
+    error_file = open("lexical_errors.txt","w")
 
     tokenizer = new_tokenizer.Tokenizer(file)
     
@@ -54,7 +44,13 @@ def main():
             string += "\n"
             token_file.write(string)
 
-                
+
+    error_file.write("There is no lexical error.")
+
+    # for list in token_list:
+    #     for token in list:
+    #         if token.type != Type.WHITESPACE:
+    #             print(token)                
         
 
 

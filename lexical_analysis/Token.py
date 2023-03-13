@@ -27,7 +27,6 @@ class Token:
         self.type = type
         self.line = line
 
-        
         if line >= len(tokenList):
             tokenList.append([])
  
