@@ -3,7 +3,7 @@ from enum import Enum
 # Alireza Foroodniya 99105645, Foroozan Iraji 99105272
 digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
 symbols = {";", ":", "{", "}", "[", "]", "(", ")", "<", "+", "-", ","}
-keywords = {"if", "else", "void", "int", "repeat", "break", "return", "until"}
+keywords = {"break", "else", "if", "int", "repeat", "return", "until", "void"}
 symbol_table = []
 token_list = []
 characterBuffer = None
@@ -21,10 +21,10 @@ class Type(Enum):
 
 
 class ERROR_Type(Enum):
-    INVALID_INPUT = "invalid input"
-    UNCLOSED_COMMENT = "unclosed comment"
-    UNMATCHED_COMMNET = "unmatched comment"
-    INVALID_NUMBER = "invalid number"
+    INVALID_INPUT = "Invalid input"
+    UNCLOSED_COMMENT = "Unclosed comment"
+    UNMATCHED_COMMNET = "Unmatched comment"
+    INVALID_NUMBER = "Invalid number"
 
 
 class Token:
@@ -82,8 +82,9 @@ def main():
     #createOutputs()
 
     initial_error_writer()
-    file_writer(token_list, "token.txt")
+    file_writer(token_list, "tokens.txt")
     file_writer(error_list , "lexical_errors.txt")
+    symbol_writer()
 
 
 def initial_error_writer():
@@ -105,6 +106,15 @@ def file_writer(content, file_name):
         file.write(string)
         file.close()
 
+
+def symbol_writer():
+    file = open("symbol_table.txt", "w")
+    i = 1
+    for symbol in symbol_table:
+        string = str(i) + ".\t" + symbol + "\n"
+        file.write(string)
+        i += 1
+    file.close()    
 
 def createOutputs():
     write_input = None
@@ -164,7 +174,7 @@ def get_next_token(file):
         
         
         #matching ERROR inside IDs
-        elif state == 1 and not (65 <= ord(nextCharacter) <= 90 or 97 <= ord(nextCharacter) <= 122 or nextCharacter in digits or nextCharacter in symbols) and not (nextCharacter.isspace()) and nextCharacter != "*" and nextCharacter != "/" :
+        elif state == 1 and not (65 <= ord(nextCharacter) <= 90 or 97 <= ord(nextCharacter) <= 122 or nextCharacter in digits or nextCharacter in symbols) and not (nextCharacter.isspace()) and nextCharacter != "*" and nextCharacter != "/" and nextCharacter != "=":
             state = 2
             lexeme += nextCharacter
         elif state == 2:
@@ -190,19 +200,22 @@ def get_next_token(file):
             state = 3
             lexeme += nextCharacter
             nextCharacter = file.read(1)
-        elif state == 3 and ((nextCharacter in digits) or nextCharacter.isspace() or (nextCharacter in symbols)) and nextCharacter != "*" and nextCharacter != "/" :
-            state = 100
-            TokenType = Type.NUM
-            characterBuffer = nextCharacter
+        # elif state == 3 and ((nextCharacter in digits) or nextCharacter.isspace() or (nextCharacter in symbols)) and nextCharacter != "*" and nextCharacter != "/" :
+        #     state = 100
+        #     TokenType = Type.NUM
+        #     characterBuffer = nextCharacter
         
         # matching NUM ERRORS
-        elif state == 3 and not(nextCharacter in digits) and not nextCharacter.isspace() and not(nextCharacter in symbols) :
+        elif state == 3 and not(nextCharacter in digits) and not nextCharacter.isspace() and not(nextCharacter in symbols) and nextCharacter != "=" and nextCharacter != "*" and nextCharacter != "/" :
             state = 4
             lexeme += nextCharacter
         elif state == 4:
             state = 100
             Error(lexeme, ERROR_Type.INVALID_NUMBER, lineno)
-
+        elif state == 3:
+            state = 100
+            TokenType = Type.NUM
+            characterBuffer = nextCharacter
         
         # elif state == 4 and not nextCharacter.isspace() and not(nextCharacter in symbols):
         #     state = 4
