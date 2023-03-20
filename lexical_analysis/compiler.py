@@ -143,6 +143,7 @@ def get_next_token(file):
     state = 0
     TokenType = None
     lexeme = ""
+    comment_start_line = 0
     global lineno
 
     global characterBuffer
@@ -160,6 +161,7 @@ def get_next_token(file):
 
     while state != 100:
         # matching ID and Keywords Using State 1 & 2
+        
         if state == 0 and (65 <= ord(nextCharacter) <= 90 or 97 <= ord(nextCharacter) <= 122):
             state = 1
             lexeme += nextCharacter
@@ -258,14 +260,16 @@ def get_next_token(file):
         # matching WHITESPACE using state 8 & 9 & 10
         elif state == 0 and nextCharacter.isspace():
             lexeme += nextCharacter
-            state = 8
-        elif state == 8:
             state = 100
+            if nextCharacter == '\n':
+                lineno += 1
             TokenType = Type.WHITESPACE
+            
         
         
         # matching comments using states starting from 11
         elif state == 0 and nextCharacter == "/":
+            comment_start_line = lineno
             lexeme += nextCharacter
             nextCharacter = file.read(1)
             state = 11
@@ -274,23 +278,32 @@ def get_next_token(file):
             lexeme = ""
             state = 12
             
-        # TODO: changes to be done to make \ illegeal character    
+      
         elif state == 11 and nextCharacter != "*":
             state = 16
 
         elif state == 12 and nextCharacter == "":
-            Error("/*" + lexeme[0:5] + "...", ERROR_Type.UNCLOSED_COMMENT, lineno)
+            Error("/*" + lexeme[0:5] + "...", ERROR_Type.UNCLOSED_COMMENT, comment_start_line)
             return 0
+        
         elif state == 12 and nextCharacter != "*":
             lexeme += nextCharacter
+            if nextCharacter == '\n':
+                lineno += 1
             nextCharacter = file.read(1)
             state = 12
         elif state == 12 and nextCharacter == "*":
             lexeme += nextCharacter
             nextCharacter = file.read(1)
             state = 13
+        elif state == 13 and nextCharacter == "*":
+            state = 13
+            lexeme += nextCharacter
+            nextCharacter = file.read(1)
         elif state == 13 and nextCharacter != "/":
             lexeme += nextCharacter
+            if nextCharacter == '\n':
+                lineno += 1
             nextCharacter = file.read(1)
             state = 12
         elif state == 13 and nextCharacter == "/":
@@ -342,8 +355,7 @@ def get_next_token(file):
 
         
 
-    if lexeme == "\n":
-        lineno += 1
+    
     if TokenType != Type.COMMENT and TokenType != Type.WHITESPACE and TokenType != None:
         Token(lexeme, TokenType, lineno)
 
