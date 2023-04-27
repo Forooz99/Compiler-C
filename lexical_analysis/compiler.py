@@ -335,12 +335,44 @@ def match(type, terminal=''):
 
 
 def first(string):
-    first_list = []
+    first_set = set() 
+    
+    terminal_has_epsilon = False
     if isNonTerminal(string):
-        for valueList in grammar:
-            first(grammar[valueList])
+        for rule in grammar[string]:
+            new_rule = True
+            rule_has_epsilon = False
+            go_next = False
+            for item in rule:
+                
+
+                if new_rule:
+                    new_rule = False
+                    first_set = first_set | first(item)
+                    if "EPSILON" in first_set:
+                        go_next = True
+                        first_set.remove("EPSILON")
+                        rule_has_epsilon = True
+                        
+
+                elif "EPSILON" in first_set or go_next:
+                    go_next = False
+                    if "EPSILON" in first_set:
+                        first_set.remove("EPSILON")
+                    first_set = first_set | first(item)
+                    rule_has_epsilon = rule_has_epsilon and ("EPSILON" in first_set)
+
+            if "EPSILON" in first_set:
+                first_set.remove("EPSILON")
+            terminal_has_epsilon = terminal_has_epsilon or rule_has_epsilon
+
     else:
-        first_list.append(string)  # first(terminal) = terminal
+        first_set.add(string)  # first(terminal) = terminal
+
+    if terminal_has_epsilon:
+        first_set.add("EPSILON")
+
+    return first_set
 
 
 def follow(nonTerminal):
