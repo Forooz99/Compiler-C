@@ -283,12 +283,47 @@ parse_table = {
 }
 
 
+def startParsing():
+    global lookahead
+    while lookahead != '$':
+        lookahead = get_next_token(input_file)
+    rule_stack.append(grammar['program'])
+    currentRule = None
+    global lookahead
+    while rule_stack:
+        currentRule = rule_stack[-1]
+        while currentRule == "EPSILON":
+            currentRule = rule_stack.pop()
+        lookahead = get_next_token(input_file)
+        if not isNonTerminal(currentRule) or currentRule == '$':
+            if currentRule == lookahead:
+                rule_stack.pop()
+                # remove lookahead from input
+            else:
+                print("error")
+        else:
+
+            if parse_table[currentRule][lookahead] is not None:
+                rule_stack.pop()
+                # add left side rule to stack
+            else:
+                print("error")
+
+
 def constructParsingTable():
-    for nonTerminal in grammar.keys():
-        for parseTableValueDict in parse_table[nonTerminal]:
-            for terminal in parse_table.keys():
-                if terminal in first(nonTerminal):
-                    parseTableValueDict[terminal] = ""
+    for nonTerminal in grammar:
+        for RHS in grammar[nonTerminal]:
+            for parseTableValueDict in parse_table[nonTerminal]:
+                for terminal in parseTableValueDict:
+                    firstSet = first(nonTerminal)
+                    if terminal in firstSet:
+                        parseTableValueDict[terminal] = RHS  # list of some rules
+                    if "EPSILON" in firstSet:
+                        followSet = follow(nonTerminal)
+                        for t in followSet:
+                            parseTableValueDict[t] = RHS  # list of some rules
+                        if '$' in followSet:
+                            parseTableValueDict["$"] = RHS  # list of some rules
 
 
 def match(type, terminal=''):
@@ -298,384 +333,18 @@ def match(type, terminal=''):
     else:
         return "error"
 
-first_list = []
+
 def first(string):
-    global first_list
+    first_list = []
     if isNonTerminal(string):
         for valueList in grammar:
-            first(valueList[0])
+            first(grammar[valueList])
     else:
-        first_list.append(string) #first(terminal) = terminal
+        first_list.append(string)  # first(terminal) = terminal
 
 
 def follow(nonTerminal):
     return
-
-
-def program():
-    return declaration_list()
-
-
-def declaration_list():
-    if lookahead in first(declaration):
-        declaration()
-        declaration_list()
-    else:
-        return
-
-
-def declaration():
-    declaration_initial()
-    declaration_prime()
-
-
-def declaration_initial():
-    type_specifier()
-    match(Type.ID)
-
-
-def declaration_prime():
-    if lookahead in first(fun_declaration_prime):
-        fun_declaration_prime()
-    elif lookahead in first(var_declaration_prime):
-        var_declaration_prime()
-    else:
-        print("error")
-
-
-def var_declaration_prime():
-    if lookahead == ";":
-        match(Type.SYMBOL, ';')
-    elif lookahead == "[":
-        match(Type.SYMBOL, '[')
-        match(Type.NUM)
-        match(Type.SYMBOL, ']')
-        match(Type.SYMBOL, ';')
-    else:
-        print("error")
-
-
-def fun_declaration_prime():
-    match(Type.SYMBOL, "(")
-    params()
-    match(Type.SYMBOL, ")")
-    compound_stmt()
-
-
-def type_specifier():
-    if lookahead is Type.NUM:
-        match(Type.NUM)
-    elif lookahead == "void":
-        match(Type.KEYWORD, "void")
-    else:
-        print("error")
-
-
-def params():
-    if lookahead == "int":
-        match(Type.KEYWORD, "int")
-        match(Type.ID)
-        param_prime()
-        param_list()
-    elif lookahead == "void":
-        match(Type.KEYWORD, "void")
-    else:
-        print("error")
-
-
-def param_list():
-    if lookahead == ",":
-        match(Type.SYMBOL, ",")
-        param()
-        param_list()
-    else:
-        return
-
-
-def param():
-    declaration_initial()
-    param_prime()
-
-
-def param_prime():
-    if lookahead == "]":
-        match(Type.SYMBOL, "]")
-        match(Type.SYMBOL, "[")
-    else:
-        return
-
-
-def compound_stmt():
-    match(Type.SYMBOL, "{")
-    declaration_list()
-    statement_list()
-    match(Type.SYMBOL, "}")
-
-
-def statement_list():
-    if lookahead in first(statement):
-        statement()
-        statement_list()
-    else:
-        return
-
-
-def statement():
-    if lookahead in first(expression_stmt):
-        expression_stmt()
-    elif lookahead in first(compound_stmt):
-        compound_stmt()
-    elif lookahead in first(selection_stmt):
-        selection_stmt()
-    elif lookahead in first(iteration_stmt):
-        iteration_stmt()
-    elif lookahead in first(return_stmt):
-        return_stmt()
-    else:
-        print("error")
-
-
-def expression_stmt():
-    if lookahead in first(expression):
-        expression()
-        match(Type.SYMBOL, ";")
-    elif lookahead == "break":
-        match(Type.KEYWORD, "break")
-        match(Type.SYMBOL, ";")
-    elif lookahead == ";":
-        match(Type.SYMBOL, ";")
-    else:
-        print("error")
-
-
-def selection_stmt():
-    match(Type.KEYWORD, "if")
-    match(Type.SYMBOL, "(")
-    expression()
-    match(Type.SYMBOL, ")")
-    statement()
-    match(Type.KEYWORD, "else")
-    statement()
-
-
-def iteration_stmt():
-    match(Type.KEYWORD, "repeat")
-    statement()
-    match(Type.KEYWORD, "until")
-    match(Type.SYMBOL, "(")
-    expression()
-    match(Type.SYMBOL, ")")
-
-
-def return_stmt():
-    match(Type.KEYWORD, "return")
-    return_stmt_prime()
-
-
-def return_stmt_prime():
-    if lookahead in first(expression):
-        expression()
-        match(Type.SYMBOL, ";")
-    elif lookahead == ";":
-        match(Type.SYMBOL, ";")
-    else:
-        print("error")
-
-
-def expression():
-    if lookahead in first(simple_expression_zegond):
-        simple_expression_zegond()
-    elif lookahead is Type.ID:
-        match(Type.ID)
-        b()
-    else:
-        print("error")
-
-
-def b():
-    if lookahead == "=":
-        match(Type.SYMBOL, "=")
-        expression()
-    elif lookahead == "[":
-        match(Type.SYMBOL, "[")
-        expression()
-        match(Type.SYMBOL, "]")
-        h()
-    elif lookahead in first(simple_expression_prime):
-        simple_expression_prime()
-    else:
-        print("error")
-
-
-def h():
-    if lookahead == "=":
-        match(Type.SYMBOL, "=")
-        expression()
-    elif lookahead in first(g):
-        g()
-        d()
-        c()
-    else:
-        print("error")
-
-
-def simple_expression_zegond():
-    additive_expression_zegond()
-    c()
-
-
-def simple_expression_prime():
-    additive_expression_prime()
-    c()
-
-
-def c():
-    if lookahead in first(relop):
-        relop()
-        additive_expression()
-    else:
-        return
-
-
-def relop():
-    if lookahead == "<":
-        match(Type.SYMBOL, "<")
-    elif lookahead == "==":
-        match(Type.SYMBOL, "==")
-    else:
-        print("error")
-
-
-def additive_expression():
-    term()
-    d()
-
-
-def additive_expression_prime():
-    term_prime()
-    d()
-
-
-def additive_expression_zegond():
-    term_zegond()
-    d()
-
-
-def d():
-    if lookahead in first(addop):
-        addop()
-        term()
-        d()
-    else:
-        return
-
-
-def addop():
-    if lookahead == "+":
-        match(Type.SYMBOL, "+")
-    elif lookahead == "-":
-        match(Type.SYMBOL, "-")
-    else:
-        print("error")
-
-
-def term():
-    factor()
-    g()
-
-
-def term_prime():
-    factor_prime()
-    g()
-
-
-def term_zegond():
-    factor_zegond()
-    g()
-
-
-def g():
-    if lookahead == "*":
-        match(Type.SYMBOL, "*")
-        factor()
-        g()
-    else:
-        return
-
-
-def factor():
-    if lookahead == "(":
-        match(Type.SYMBOL, "(")
-        expression()
-        match(Type.SYMBOL, ")")
-    elif lookahead is Type.ID:
-        match(Type.ID)
-        var_call_prime()
-    elif lookahead is Type.NUM:
-        match(Type.NUM)
-    else:
-        print("error")
-
-
-def var_call_prime():
-    if lookahead == "(":
-        match(Type.SYMBOL, "(")
-        args()
-        match(Type.SYMBOL, ")")
-    elif lookahead in first(var_prime):
-        var_prime()
-    else:
-        print("error")
-
-
-def var_prime():
-    if lookahead == "[":
-        match(Type.SYMBOL, "[")
-        expression()
-        match(Type.SYMBOL, "]")
-    else:
-        return
-
-
-def factor_prime():
-    if lookahead == "(":
-        match(Type.SYMBOL, "(")
-        args()
-        match(Type.SYMBOL, ")")
-    else:
-        return
-
-
-def factor_zegond():
-    if lookahead == "(":
-        match(Type.SYMBOL, "(")
-        expression()
-        match(Type.SYMBOL, ")")
-    elif lookahead is Type.NUM:
-        match(Type.NUM)
-    else:
-        print("error")
-
-
-def args():
-    if lookahead in first(arg_list):
-        arg_list()
-    else:
-        return
-
-
-def arg_list():
-    expression()
-    arg_list_prime()
-
-
-def arg_list_prime():
-    if lookahead == ",":
-        match(Type.SYMBOL, ",")
-        expression()
-        arg_list_prime()
-    else:
-        return
 
 
 def isNonTerminal(symbol):
@@ -730,49 +399,8 @@ def main():
         Token(keyword, Type.KEYWORD, needToAddToTokenList=False)
 
     input_file = open("input.txt", "r")
-    lookahead = get_next_token(input_file)
-
-    while get_next_token(input_file):
-        get_next_token(input_file)
-
+    startParsing()
     input_file.close()
-
-    initial_error_writer()
-    file_writer(token_list, "tokens.txt")
-    file_writer(error_list, "lexical_errors.txt")
-    symbol_writer()
-
-
-def initial_error_writer():
-    file = open("lexical_errors.txt", "w")
-    file.write("There is no lexical error.")
-    file.close()
-
-
-def file_writer(content, file_name):
-    if content:
-        file = open(file_name, "w")
-        string = str(content[0].line) + ".\t" + str(content[0]) + " "
-        for i in range(1, len(content)):
-            if content[i].line == content[i - 1].line:
-                string += str(content[i]) + " "
-            else:
-                string += "\n"
-                file.write(string)
-                string = str(content[i].line) + ".\t" + str(content[i]) + " "
-        file.write(string)
-        file.close()
-
-
-def symbol_writer():
-    file = open("symbol_table.txt", "w")
-    i = 1
-    for symbol in symbol_table:
-        string = str(i) + ".\t" + symbol + "\n"
-        file.write(string)
-        i += 1
-    file.close()
-
 
 def get_next_token(file):
     state = 0
@@ -965,12 +593,40 @@ def get_next_token(file):
 
     return 1
 
-
 def findType(token):
     if token in keywords:
         return Type.KEYWORD
     else:
         return Type.ID
+
+def initial_error_writer():
+    file = open("lexical_errors.txt", "w")
+    file.write("There is no lexical error.")
+    file.close()
+
+def file_writer(content, file_name):
+    if content:
+        file = open(file_name, "w")
+        string = str(content[0].line) + ".\t" + str(content[0]) + " "
+        for i in range(1, len(content)):
+            if content[i].line == content[i - 1].line:
+                string += str(content[i]) + " "
+            else:
+                string += "\n"
+                file.write(string)
+                string = str(content[i].line) + ".\t" + str(content[i]) + " "
+        file.write(string)
+        file.close()
+
+def symbol_writer():
+    file = open("symbol_table.txt", "w")
+    i = 1
+    for symbol in symbol_table:
+        string = str(i) + ".\t" + symbol + "\n"
+        file.write(string)
+        i += 1
+    file.close()
+
 
 
 main()
