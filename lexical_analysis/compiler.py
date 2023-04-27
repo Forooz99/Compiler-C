@@ -59,6 +59,392 @@ grammar = {
 }
 
 
+def match(type, terminal= ''):
+    global lookahead, input_file
+    if lookahead == terminal:
+        lookahead = get_next_token(input_file)
+    else:
+        return "error"
+
+
+def first(string):
+    return
+
+
+def follow(nonTerminal):
+    return
+
+
+def program():
+    declaration_list()
+
+
+def declaration_list():
+    if lookahead in first(declaration):
+        declaration()
+        declaration_list()
+    else:
+        return
+
+
+def declaration():
+    declaration_initial()
+    declaration_prime()
+
+
+def declaration_initial():
+    type_specifier()
+    match(Type.ID)
+
+
+def declaration_prime():
+    if lookahead in first(fun_declaration_prime):
+        fun_declaration_prime()
+    elif lookahead in first(var_declaration_prime):
+        var_declaration_prime()
+    else:
+        print("error")
+
+
+def var_declaration_prime():
+    if lookahead == ";":
+        match(Type.SYMBOL, ';')
+    elif lookahead == "[":
+        match(Type.SYMBOL, '[')
+        match(Type.NUM)
+        match(Type.SYMBOL, ']')
+        match(Type.SYMBOL, ';')
+    else:
+        print("error")
+
+
+def fun_declaration_prime():
+    match(Type.SYMBOL, "(")
+    params()
+    match(Type.SYMBOL, ")")
+    compound_stmt()
+
+
+def type_specifier():
+    if lookahead is Type.NUM:
+        match(Type.NUM)
+    elif lookahead == "void":
+        match(Type.KEYWORD, "void")
+    else:
+        print("error")
+
+
+def params():
+    if lookahead == "int":
+        match(Type.KEYWORD, "int")
+        match(Type.ID)
+        param_prime()
+        param_list()
+    elif lookahead == "void":
+        match(Type.KEYWORD, "void")
+    else:
+        print("error")
+
+
+def param_list():
+    if lookahead == ",":
+        match(Type.SYMBOL, ",")
+        param()
+        param_list()
+    else:
+        return
+
+
+def param():
+    declaration_initial()
+    param_prime()
+
+
+def param_prime():
+    if lookahead == "]":
+        match(Type.SYMBOL, "]")
+        match(Type.SYMBOL, "[")
+    else:
+        return
+
+
+def compound_stmt():
+    match(Type.SYMBOL, "{")
+    declaration_list()
+    statement_list()
+    match(Type.SYMBOL, "}")
+
+
+def statement_list():
+    if lookahead in first(statement):
+        statement()
+        statement_list()
+    else:
+        return
+
+
+def statement():
+    if lookahead in first(expression_stmt):
+        expression_stmt()
+    elif lookahead in first(compound_stmt):
+        compound_stmt()
+    elif lookahead in first(selection_stmt):
+        selection_stmt()
+    elif lookahead in first(iteration_stmt):
+        iteration_stmt()
+    elif lookahead in first(return_stmt):
+        return_stmt()
+    else:
+        print("error")
+
+
+def expression_stmt():
+    if lookahead in first(expression):
+        expression()
+        match(Type.SYMBOL, ";")
+    elif lookahead == "break":
+        match(Type.KEYWORD, "break")
+        match(Type.SYMBOL, ";")
+    elif lookahead == ";":
+        match(Type.SYMBOL, ";")
+    else:
+        print("error")
+
+
+def selection_stmt():
+    match(Type.KEYWORD, "if")
+    match(Type.SYMBOL, "(")
+    expression()
+    match(Type.SYMBOL, ")")
+    statement()
+    match(Type.KEYWORD, "else")
+    statement()
+
+
+def iteration_stmt():
+    match(Type.KEYWORD, "repeat")
+    statement()
+    match(Type.KEYWORD, "until")
+    match(Type.SYMBOL, "(")
+    expression()
+    match(Type.SYMBOL, ")")
+
+
+def return_stmt():
+    match(Type.KEYWORD, "return")
+    return_stmt_prime()
+
+
+def return_stmt_prime():
+    if lookahead in first(expression):
+        expression()
+        match(Type.SYMBOL, ";")
+    elif lookahead == ";":
+        match(Type.SYMBOL, ";")
+    else:
+        print("error")
+
+
+def expression():
+    if lookahead in first(simple_expression_zegond):
+        simple_expression_zegond()
+    elif lookahead is Type.ID:
+        match(Type.ID)
+        b()
+    else:
+        print("error")
+
+
+def b():
+    if lookahead == "=":
+        match(Type.SYMBOL, "=")
+        expression()
+    elif lookahead == "[":
+        match(Type.SYMBOL, "[")
+        expression()
+        match(Type.SYMBOL, "]")
+        h()
+    elif lookahead in first(simple_expression_prime):
+        simple_expression_prime()
+    else:
+        print("error")
+
+
+def h():
+    if lookahead == "=":
+        match(Type.SYMBOL, "=")
+        expression()
+    elif lookahead in first(g):
+        g()
+        d()
+        c()
+    else:
+        print("error")
+
+
+def simple_expression_zegond():
+    additive_expression_zegond()
+    c()
+
+
+def simple_expression_prime():
+    additive_expression_prime()
+    c()
+
+
+def c():
+    if lookahead in first(relop):
+        relop()
+        additive_expression()
+    else:
+        return
+
+
+def relop():
+    if lookahead == "<":
+        match(Type.SYMBOL, "<")
+    elif lookahead == "==":
+        match(Type.SYMBOL, "==")
+    else:
+        print("error")
+
+
+def additive_expression():
+    term()
+    d()
+
+
+def additive_expression_prime():
+    term_prime()
+    d()
+
+
+def additive_expression_zegond():
+    term_zegond()
+    d()
+
+
+def d():
+    if lookahead in first(addop):
+        addop()
+        term()
+        d()
+    else:
+        return
+
+
+def addop():
+    if lookahead == "+":
+        match(Type.SYMBOL, "+")
+    elif lookahead == "-":
+        match(Type.SYMBOL, "-")
+    else:
+        print("error")
+
+
+def term():
+    factor()
+    g()
+
+
+def term_prime():
+    factor_prime()
+    g()
+
+
+def term_zegond():
+    factor_zegond()
+    g()
+
+
+def g():
+    if lookahead == "*":
+        match(Type.SYMBOL, "*")
+        factor()
+        g()
+    else:
+        return
+
+
+def factor():
+    if lookahead == "(":
+        match(Type.SYMBOL, "(")
+        expression()
+        match(Type.SYMBOL, ")")
+    elif lookahead is Type.ID:
+        match(Type.ID)
+        var_call_prime()
+    elif lookahead is Type.NUM:
+        match(Type.NUM)
+    else:
+        print("error")
+
+
+def var_call_prime():
+    if lookahead == "(":
+        match(Type.SYMBOL, "(")
+        args()
+        match(Type.SYMBOL, ")")
+    elif lookahead in first(var_prime):
+        var_prime()
+    else:
+        print("error")
+
+
+def var_prime():
+    if lookahead == "[":
+        match(Type.SYMBOL, "[")
+        expression()
+        match(Type.SYMBOL, "]")
+    else:
+        return
+
+
+def factor_prime():
+    if lookahead == "(":
+        match(Type.SYMBOL, "(")
+        args()
+        match(Type.SYMBOL, ")")
+    else:
+        return
+
+
+def factor_zegond():
+    if lookahead == "(":
+        match(Type.SYMBOL, "(")
+        expression()
+        match(Type.SYMBOL, ")")
+    elif lookahead is Type.NUM:
+        match(Type.NUM)
+    else:
+        print("error")
+
+
+def args():
+    if lookahead in first(arg_list):
+        arg_list()
+    else:
+        return
+
+
+def arg_list():
+    expression()
+    arg_list_prime()
+
+
+def arg_list_prime():
+    if lookahead == ",":
+        match(Type.SYMBOL, ",")
+        expression()
+        arg_list_prime()
+    else:
+        return
+
+
+def isNonTerminal(symbol):
+    return symbol in grammar.keys()
+
+
 class Type(Enum):
     NUM = 1
     ID = 2
@@ -350,11 +736,7 @@ def findType(token):
         return Type.ID
 
 
-def match(terminal):
-    global lookahead, input_file
-    if lookahead == terminal:
-        lookahead = get_next_token(input_file)
-    else:
-        return "error"
+
+
 
 main()
