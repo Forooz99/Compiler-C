@@ -12,7 +12,6 @@ characterBuffer = None
 lineno = 1
 input_file = None
 lookahead = None
-current_rule = []
 grammar = {
     "Program": [["Declaration-list"]],
     "Declaration-list": [["Declaration", "Declaration-list"], ["EPSILON"]],
@@ -58,6 +57,98 @@ grammar = {
     "Args": [["Arg-list"], ["EPSILON"]],
     "Arg-list": [["Expression", "Arg-list-prime"]],
     "Arg-list-prime": [[",", "Expression", "Arg-list-prime"], ["EPSILON"]]
+}
+first_set = {
+    "Program": ["EPSILON", "int", "void"],
+    "Declaration-list": ["EPSILON", "int", "void"],
+    "Declaration": ["int", "void"],
+    "Declaration-initial": ["int", "void"],
+    "Declaration-prime": ["(", ";", "["],
+    "Var-declaration-prime": [";", "["],
+    "Fun-declaration-prime": ["("],
+    "Type-specifier": ["int", "void"],
+    "Params": ["int", "void"],
+    "Param-list": [",", "EPSILON"],
+    "Param": ["int", "void"],
+    "Param-prime": ["[", "EPSILON"],
+    "Compound-stmt": ["{"],
+    "Statement-list": ["EPSILON", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Statement": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Expression-stmt": ["break", ";", "ID", "(", "NUM"],
+    "Selection-stmt": ["if"],
+    "Iteration-stmt": ["repeat"],
+    "Return-stmt": ["return"],
+    "Return-stmt-prime": [";", "ID", "(", "NUM"],
+    "Expression": ["ID", "(", "NUM"],
+    "B": ["=", "[", "(", "EPSILON"],
+    "H": ["=", "*", "EPSILON"],
+    "Simple-expression-zegond": ["(", "NUM"],
+    "Simple-expression-prime": ["(", "EPSILON"],
+    "C": ["EPSILON", "<", "=="],
+    "Relop": [["<"], ["=="]],
+    "Additive-expression": ["(", "ID", "NUM"],
+    "Additive-expression-prime": ["(", "EPSILON"],
+    "Additive-expression-zegond": ["(", "NUM"],
+    "D": ["EPSILON", "+", "-"],
+    "Addop": ["+", "-"],
+    "Term": ["(", "ID", "NUM"],
+    "Term-prime": ["(", "EPSILON"],
+    "Term-zegond": ["(", "NUM"],
+    "G": ["*", "EPSILON"],
+    "Factor": ["(", "ID", "NUM"],
+    "Var-call-prime": ["(", "[", "EPSILON"],
+    "Var-prime": ["[", "EPSILON"],
+    "Factor-prime": ["(", "EPSILON"],
+    "Factor-zegond": ["(", "NUM"],
+    "Args": ["ID", "(", "NUM", "EPSILON"],
+    "Arg-list": ["ID", "(", "NUM"],
+    "Arg-list-prime": [",", "EPSILON"]
+}
+follow_set = {
+    "Program": ["$"],
+    "Declaration-list": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat", "$"],
+    "Declaration": ["int", "void"],
+    "Declaration-initial": ["[", "(", ";"],
+    "Declaration-prime": ["int", "void"],
+    "Var-declaration-prime": ["int", "void"],
+    "Fun-declaration-prime": ["int", "void"],
+    "Type-specifier": ["ID"],
+    "Params": [")"],
+    "Param-list": [")"],
+    "Param": [","],
+    "Param-prime": [","],
+    "Compound-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat", "int", "void"],
+    "Statement-list": ["}"],
+    "Statement": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Expression-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Selection-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Iteration-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Return-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Return-stmt-prime": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Expression": [",", ")", "]", ";"],
+    "B": [",", ")", "]", ";"],
+    "H": [",", ")", "]", ";"],
+    "Simple-expression-zegond": [",", ")", "]", ";"],
+    "Simple-expression-prime": [",", ")", "]", ";"],
+    "C": [",", ")", "]", ";"],
+    "Relop": ["(", "ID", "NUM"],
+    "Additive-expression": [",", ")", "]", ";"],
+    "Additive-expression-prime": ["<", "=="],
+    "Additive-expression-zegond": ["<", "=="],
+    "D": ["<", "==", ",", ")", "]", ";"],
+    "Addop": ["(", "ID", "NUM"],
+    "Term": ["+", "-"],
+    "Term-prime": ["+", "-"],
+    "Term-zegond": ["+", "-"],
+    "G": ["+", "-"],
+    "Factor": ["*"],
+    "Var-call-prime": ["*"],
+    "Var-prime": ["*"],
+    "Factor-prime": ["*"],
+    "Factor-zegond": ["*"],
+    "Args": [")"],
+    "Arg-list": [")"],
+    "Arg-list-prime": [")"]
 }
 parse_table = {
     "Program": {
@@ -282,147 +373,38 @@ parse_table = {
     }
 }
 syntax_error_list = []
-first_set = {
-    "Program": ["EPSILON", "int", "void"],
-    "Declaration-list": ["EPSILON", "int", "void"],
-    "Declaration": ["int", "void"],
-    "Declaration-initial": ["int", "void"],
-    "Declaration-prime": ["(", ";", "["],
-    "Var-declaration-prime": [";", "["],
-    "Fun-declaration-prime": ["("],
-    "Type-specifier": ["int", "void"],
-    "Params": ["int", "void"],
-    "Param-list": [",", "EPSILON"],
-    "Param": ["int", "void"],
-    "Param-prime": ["[", "EPSILON"],
-    "Compound-stmt": ["{"],
-    "Statement-list": ["EPSILON", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Statement": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Expression-stmt": ["break", ";", "ID", "(", "NUM"],
-    "Selection-stmt": ["if"],
-    "Iteration-stmt": ["repeat"],
-    "Return-stmt": ["return"],
-    "Return-stmt-prime": [";", "ID", "(", "NUM"],
-    "Expression": ["ID", "(", "NUM"],
-    "B": ["=", "[", "(", "EPSILON"],
-    "H": ["=", "*", "EPSILON"],
-    "Simple-expression-zegond": ["(", "NUM"],
-    "Simple-expression-prime": ["(", "EPSILON"],
-    "C": ["EPSILON", "<", "=="],
-    "Relop": [["<"], ["=="]],
-    "Additive-expression": ["(", "ID", "NUM"],
-    "Additive-expression-prime": ["(", "EPSILON"],
-    "Additive-expression-zegond": ["(", "NUM"],
-    "D": ["EPSILON", "+", "-"],
-    "Addop": ["+", "-"],
-    "Term": ["(", "ID", "NUM"],
-    "Term-prime": ["(", "EPSILON"],
-    "Term-zegond": ["(", "NUM"],
-    "G": ["*", "EPSILON"],
-    "Factor": ["(", "ID", "NUM"],
-    "Var-call-prime": ["(", "[", "EPSILON"],
-    "Var-prime": ["[", "EPSILON"],
-    "Factor-prime": ["(", "EPSILON"],
-    "Factor-zegond": ["(", "NUM"],
-    "Args": ["ID", "(", "NUM", "EPSILON"],
-    "Arg-list": ["ID", "(", "NUM"],
-    "Arg-list-prime": [",", "EPSILON"],
-    ";": [";"], ",": [","], "]": ["]"], "[": ["["], ")": [")"], "(": ["("], "}": ["}"], "{": ["{"],
-    "=": ["="], "==": ["=="], "<": ["<"], "+": ["+"], "-": ["-"], "*": ["*"],
-    "ID": ["ID"], "NUM": ["NUM"], "int": ["int"], "void": ["void"], "break": ["break"], "if": ["if"], "else": ["else"],
-    "repeat": ["repeat"], "until": ["until"], "return": ["return"], "EPSILON": ["EPSILON"]
-}
-follow_set = {
-    "Program": ["$"],
-    "Declaration-list": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat", "$"],
-    "Declaration": ["int", "void"],
-    "Declaration-initial": ["[", "(", ";"],
-    "Declaration-prime": ["int", "void"],
-    "Var-declaration-prime": ["int", "void"],
-    "Fun-declaration-prime": ["int", "void"],
-    "Type-specifier": ["ID"],
-    "Params": [")"],
-    "Param-list": [")"],
-    "Param": [","],
-    "Param-prime": [","],
-    "Compound-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat", "int", "void"],
-    "Statement-list": ["}"],
-    "Statement": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Expression-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Selection-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Iteration-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Return-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Return-stmt-prime": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Expression": [",", ")", "]", ";"],
-    "B": [",", ")", "]", ";"],
-    "H": [",", ")", "]", ";"],
-    "Simple-expression-zegond": [",", ")", "]", ";"],
-    "Simple-expression-prime": [",", ")", "]", ";"],
-    "C": [",", ")", "]", ";"],
-    "Relop": ["(", "ID", "NUM"],
-    "Additive-expression": [",", ")", "]", ";"],
-    "Additive-expression-prime": ["<", "=="],
-    "Additive-expression-zegond": ["<", "=="],
-    "D": ["<", "==", ",", ")", "]", ";"],
-    "Addop": ["(", "ID", "NUM"],
-    "Term": ["+", "-"],
-    "Term-prime": ["+", "-"],
-    "Term-zegond": ["+", "-"],
-    "G": ["+", "-"],
-    "Factor": ["*"],
-    "Var-call-prime": ["*"],
-    "Var-prime": ["*"],
-    "Factor-prime": ["*"],
-    "Factor-zegond": ["*"],
-    "Args": [")"],
-    "Arg-list": [")"],
-    "Arg-list-prime": [")"]
-}
 
 
-def startParsing():
-    global lookahead, current_rule
-    constructParsingTable()
-    initial_syntax_error_writer()
+def main():
+    global input_file, lookahead
+    # initialize keywords as first tokens & add to symbol_table
+    for keyword in keywords:
+        Token(keyword, Token_Type.KEYWORD, needToAddToTokenList=False)
 
+    input_file = open("input.txt", "r")
+    #  constructParsingTable()
     # for nonTerminal in parse_table:
     #     print("")
     #     print(nonTerminal, end="        ")
     #     for terminal in parse_table["Program"].keys():
     #         print(str(parse_table[nonTerminal][terminal]) + ", " + str(terminal), end="    ")
 
-    current_rule = "Program"
     lookahead = get_next_token(input_file)
-    program()
-    # when current_rule == None means there is no rule left and parse ends
+    print(lookahead)
+    program()  # parse starts
+    write_syntax_error()
 
-    # rule_stack.append("Program")  # push start state
-    # lookahead = get_next_token(input_file)
-    # while rule_stack:
-    #     if lookahead == "$":
-    #         print("parse end")
-    #         break
-    #     currentRule = rule_stack[-1]
-    #     if currentRule == "EPSILON":
-    #         rule_stack.pop()  # if state = epsilon pop and go to see state on top of stack
-    #         continue
-    #     if not isNonTerminal(currentRule) or currentRule == "$":  # terminal state & on top of stack
-    #         if currentRule == lookahead:
-    #             rule_stack.pop()
-    #             lookahead = get_next_token(input_file)
-    #             # create leaf node
-    #         else:
-    #             rule_stack.pop()
-    #     else:  # non terminal state on top of stack
-    #
-    #         if not parse_table[currentRule][lookahead]:  # have transition
-    #             rule_stack.pop()
-    #             # create interior node
-    #             rule_stack.append(parse_table[currentRule][lookahead])
-    #         elif parse_table[currentRule][lookahead] == "synch":
-    #             rule_stack.pop()
-    #         else:  # empty cell
-    #             lookahead = get_next_token(input_file)
+    input_file.close()
+
+
+def write_syntax_error():
+    file = open("syntax_errors.txt", "w")
+    if len(syntax_error_list) != 0:
+        for error in syntax_error_list:
+            file.write(str(error))
+    else:
+        file.write("There is no syntax error.")
+    file.close()
 
 
 def constructParsingTable():
@@ -441,11 +423,10 @@ def constructParsingTable():
 
 
 class Syntax_Error:
-    def __init__(self, lexeme="", line=0, errorType=""):
-        self.lexeme = lexeme
+    def __init__(self, line=0, errorType=""):
         self.line = line
         self.errorType = errorType
-        error_list.append(self)
+        syntax_error_list.append(self)
 
     def __str__(self) -> str:
         return "#" + str(self.line) + " : syntax error, " + self.errorType
@@ -456,7 +437,7 @@ def match(type, terminal=''):
     if lookahead == terminal:
         lookahead = get_next_token(input_file)
     else:
-        return "error"
+        return Syntax_Error()
 
 
 def program():
@@ -476,27 +457,27 @@ def declaration_list():
         # call Declaration-prime
         if lookahead in first_set["Fun_declaration_prime"]:  # Declaration-prime -> Fun_declaration_prime
             # call Fun_declaration_prime
-            match(Type.SYMBOL, "(")
+            match(Token_Type.SYMBOL, "(")
             # call Params
             if lookahead == "int":  # Params -> int ID Param-prime Param-list
-                match(Type.KEYWORD, "int")
-                match(Type.ID)
+                match(Token_Type.KEYWORD, "int")
+                match(Token_Type.ID)
                 param_prime()
                 param_list()
             elif lookahead == "void":  # Params -> void
-                match(Type.KEYWORD, "void")
+                match(Token_Type.KEYWORD, "void")
             else:
                 return Syntax_Error()
-            match(Type.SYMBOL, ")")
+            match(Token_Type.SYMBOL, ")")
             compound_stmt()
         elif lookahead in first_set["Var_declaration_prime"]:  # Declaration-prime -> Var_declaration_prime
             if lookahead == ";":  # Var_declaration_prime -> ;
-                match(Type.SYMBOL, ';')
+                match(Token_Type.SYMBOL, ';')
             elif lookahead == "[":  # Var_declaration_prime -> [ NUM ] ;
-                match(Type.SYMBOL, '[')
-                match(Type.NUM)
-                match(Type.SYMBOL, ']')
-                match(Type.SYMBOL, ';')
+                match(Token_Type.SYMBOL, '[')
+                match(Token_Type.NUM)
+                match(Token_Type.SYMBOL, ']')
+                match(Token_Type.SYMBOL, ';')
             else:
                 return Syntax_Error()
         else:
@@ -510,17 +491,17 @@ def declaration_list():
 def declaration_initial():
     # Declaration-initial -> Type-specifier ID
     if lookahead == "int":  # Type-specifier -> int
-        match(Type.KEYWORD, "int")
+        match(Token_Type.KEYWORD, "int")
     elif lookahead == "void":  # Type-specifier -> void
-        match(Type.KEYWORD, "void")
+        match(Token_Type.KEYWORD, "void")
     else:
         return Syntax_Error()
-    match(Type.ID)
+    match(Token_Type.ID)
 
 
 def param_list():
     if lookahead == ",":  # Param-list -> , Param Param-list
-        match(Type.SYMBOL, ",")
+        match(Token_Type.SYMBOL, ",")
         # call Param
         declaration_initial()
         param_prime()
@@ -532,18 +513,18 @@ def param_list():
 
 def param_prime():
     if lookahead == "[":  # Param-prime -> [ ]
-        match(Type.SYMBOL, "[")
-        match(Type.SYMBOL, "]")
+        match(Token_Type.SYMBOL, "[")
+        match(Token_Type.SYMBOL, "]")
     else:  # Param-prime -> EPSILON
         return
 
 
 def compound_stmt():
     if lookahead == "{":  # Compound-stmt -> { Declaration-list Statement-list }
-        match(Type.SYMBOL, "{")
+        match(Token_Type.SYMBOL, "{")
         declaration_list()
         statement_list()
-        match(Type.SYMBOL, "}")
+        match(Token_Type.SYMBOL, "}")
     else:
         return Syntax_Error()
 
@@ -560,38 +541,38 @@ def statement():
     if lookahead in first_set["Expression_stmt"]:  # Statement -> Expression_stmt
         if lookahead in first_set["Expression"]:
             expression()
-            match(Type.SYMBOL, ";")
+            match(Token_Type.SYMBOL, ";")
         elif lookahead == "break":
-            match(Type.KEYWORD, "break")
-            match(Type.SYMBOL, ";")
+            match(Token_Type.KEYWORD, "break")
+            match(Token_Type.SYMBOL, ";")
         elif lookahead == ";":
-            match(Type.SYMBOL, ";")
+            match(Token_Type.SYMBOL, ";")
         else:
             print("error")
     elif lookahead in first_set["Compound_stmt"]:  # Statement -> Compound_stmt
         compound_stmt()
     elif lookahead in first_set["Selection_stmt"]:  # Statement -> Selection_stmt
-        match(Type.KEYWORD, "if")
-        match(Type.SYMBOL, "(")
+        match(Token_Type.KEYWORD, "if")
+        match(Token_Type.SYMBOL, "(")
         expression()
-        match(Type.SYMBOL, ")")
+        match(Token_Type.SYMBOL, ")")
         statement()
-        match(Type.KEYWORD, "else")
+        match(Token_Type.KEYWORD, "else")
         statement()
     elif lookahead in first_set["Iteration_stmt"]:  # Statement -> Iteration_stmt
-        match(Type.KEYWORD, "repeat")
+        match(Token_Type.KEYWORD, "repeat")
         statement()
-        match(Type.KEYWORD, "until")
-        match(Type.SYMBOL, "(")
+        match(Token_Type.KEYWORD, "until")
+        match(Token_Type.SYMBOL, "(")
         expression()
-        match(Type.SYMBOL, ")")
+        match(Token_Type.SYMBOL, ")")
     elif lookahead in first_set["Return_stmt"]:  # Statement -> Return_stmt
-        match(Type.KEYWORD, "return")
+        match(Token_Type.KEYWORD, "return")
         if lookahead in first_set["Expression"]:
             expression()
-            match(Type.SYMBOL, ";")
+            match(Token_Type.SYMBOL, ";")
         elif lookahead == ";":
-            match(Type.SYMBOL, ";")
+            match(Token_Type.SYMBOL, ";")
         else:
             print("error")
     else:
@@ -605,11 +586,11 @@ def expression():
         # Term-zegond -> Factor-zegond G
         # call Term-zegond
         if lookahead == "(":  # Factor-zegond -> ( Expression )
-            match(Type.SYMBOL, "(")
+            match(Token_Type.SYMBOL, "(")
             expression()
-            match(Type.SYMBOL, ")")
-        elif lookahead.getType() is Type.NUM:  # Factor-zegond -> NUM
-            match(Type.NUM)
+            match(Token_Type.SYMBOL, ")")
+        elif lookahead.type is Token_Type.NUM:  # Factor-zegond -> NUM
+            match(Token_Type.NUM)
         else:
             return "error"
         g()
@@ -617,18 +598,18 @@ def expression():
         d()
         # call Simple-expression-zegond
         c()
-    elif lookahead.getType() is Type.ID:  # Expression -> ID B
-        match(Type.ID)
+    elif lookahead.type is Token_Type.ID:  # Expression -> ID B
+        match(Token_Type.ID)
         # call B
         if lookahead == "=":  # B -> = Expression
-            match(Type.SYMBOL, "=")
+            match(Token_Type.SYMBOL, "=")
             expression()
         elif lookahead == "[":  # B -> [ Expression ] H
-            match(Type.SYMBOL, "[")
+            match(Token_Type.SYMBOL, "[")
             expression()
-            match(Type.SYMBOL, "]")
+            match(Token_Type.SYMBOL, "]")
             if lookahead == "=":  # H -> = Expression
-                match(Type.SYMBOL, "=")
+                match(Token_Type.SYMBOL, "=")
                 expression()
             elif lookahead in first_set["G"]:  # H -> G D C
                 g()
@@ -638,9 +619,9 @@ def expression():
                 return "error"
         elif lookahead in first_set["Simple_expression_prime"]:  # B -> Simple_expression_prime
             if lookahead == "(":
-                match(Type.SYMBOL, "(")
+                match(Token_Type.SYMBOL, "(")
                 args()
-                match(Type.SYMBOL, ")")
+                match(Token_Type.SYMBOL, ")")
             else:
                 return
             g()
@@ -655,9 +636,9 @@ def expression():
 def c():
     if lookahead in first_set["Relop"]:  # C -> Relop Additive-expression
         if lookahead == "<":  # Relop -> <
-            match(Type.SYMBOL, "<")
+            match(Token_Type.SYMBOL, "<")
         elif lookahead == "==":  # Relop -> ==
-            match(Type.SYMBOL, "==")
+            match(Token_Type.SYMBOL, "==")
         else:
             return "error"
         # Additive-expression -> Term D
@@ -671,9 +652,9 @@ def c():
 def d():
     if lookahead in first_set["Addop"]:  # D -> Addop Term D
         if lookahead == "+":  # Addop -> +
-            match(Type.SYMBOL, "+")
+            match(Token_Type.SYMBOL, "+")
         elif lookahead == "-":  # Addop -> -
-            match(Type.SYMBOL, "-")
+            match(Token_Type.SYMBOL, "-")
         else:
             return "error"
         # call Term
@@ -687,7 +668,7 @@ def d():
 
 def g():
     if lookahead == "*":  # G -> * Factor G
-        match(Type.SYMBOL, "*")
+        match(Token_Type.SYMBOL, "*")
         factor()
         g()
     else:  # G -> EPSILON
@@ -696,28 +677,28 @@ def g():
 
 def factor():
     if lookahead == "(":  # Factor -> ( Expression )
-        match(Type.SYMBOL, "(")
+        match(Token_Type.SYMBOL, "(")
         expression()
-        match(Type.SYMBOL, ")")
-    elif lookahead is Type.ID:  # Factor -> ID Var-call-prime
-        match(Type.ID)
+        match(Token_Type.SYMBOL, ")")
+    elif lookahead is Token_Type.ID:  # Factor -> ID Var-call-prime
+        match(Token_Type.ID)
         # call Var-call-prime
         if lookahead == "(":  # Var-call-prime -> ( Args )
-            match(Type.SYMBOL, "(")
+            match(Token_Type.SYMBOL, "(")
             args()
-            match(Type.SYMBOL, ")")
+            match(Token_Type.SYMBOL, ")")
         elif lookahead in first_set["Var_prime"]:  # Var-call-prime -> Var-prime
             # call Var-prime
             if lookahead == "[":  # Var-prime -> [ Expression ]
-                match(Type.SYMBOL, "[")
+                match(Token_Type.SYMBOL, "[")
                 expression()
-                match(Type.SYMBOL, "]")
+                match(Token_Type.SYMBOL, "]")
             else:  # Var-prime -> EPSILON
                 return
         else:
             return "error"
-    elif lookahead is Type.NUM:  # Factor -> NUM
-        match(Type.NUM)
+    elif lookahead is Token_Type.NUM:  # Factor -> NUM
+        match(Token_Type.NUM)
     else:
         return "error"
 
@@ -733,35 +714,18 @@ def args():
 
 def arg_list_prime():
     if lookahead == ",":  # Arg-list-prime -> , Expression Arg-list-prime
-        match(Type.SYMBOL, ",")
+        match(Token_Type.SYMBOL, ",")
         expression()
         arg_list_prime()
     else:  # Arg-list-prime -> EPSILON
         return
 
 
-def initial_syntax_error_writer():
-    file = open("syntax_errors.txt", "w")
-    file.write("There is no syntax error.")
-    file.close()
-
-
 def isNonTerminal(symbol):
     return symbol in grammar.keys()
 
 
-def main():
-    global input_file
-    # initialize keywords as first tokens & add to symbol_table
-    for keyword in keywords:
-        Token(keyword, Type.KEYWORD, needToAddToTokenList=False)
-
-    input_file = open("input.txt", "r")
-    startParsing()
-    input_file.close()
-
-
-class Type(Enum):
+class Token_Type(Enum):
     NUM = 1
     ID = 2
     KEYWORD = 3
@@ -778,11 +742,11 @@ class ERROR_Type(Enum):
 
 
 class Token:
-    def __init__(self, lexeme="", type=Type.ID, line=0, needToAddToTokenList=True):
+    def __init__(self, lexeme="", type=Token_Type.ID, line=0, needToAddToTokenList=True):
         self.lexeme = lexeme
         self.type = type
         self.line = line
-        if (type == Type.ID or type == Type.KEYWORD) and lexeme not in symbol_table:
+        if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
             symbol_table.append(lexeme)
         if needToAddToTokenList and self not in token_list:
             token_list.append(self)
@@ -790,11 +754,8 @@ class Token:
     def __str__(self):
         return "(" + self.type.name + ", " + self.lexeme + ")"
 
-    def getType(self):
-        return self.type
 
-
-class LexicalError:
+class Lexical_Error:
     def __init__(self, lexeme="", error_type=ERROR_Type.INVALID_INPUT, line=0):
         self.lexeme = lexeme
         self.type = error_type
@@ -809,8 +770,7 @@ def get_next_token(file):
     state = 0
     TokenType = None
     lexeme = ""
-    global lineno
-    global characterBuffer
+    global lineno, characterBuffer
 
     if characterBuffer:
         nextCharacter = characterBuffer
@@ -844,7 +804,7 @@ def get_next_token(file):
             lexeme += nextCharacter
         elif state == 2:
             state = 100
-            LexicalError(lexeme, ERROR_Type.INVALID_INPUT, lineno)
+            Lexical_Error(lexeme, ERROR_Type.INVALID_INPUT, lineno)
         # rest of matching IDs    
         elif state == 1:
             state = 100
@@ -857,7 +817,7 @@ def get_next_token(file):
             nextCharacter = file.read(1)
         elif state == 3 and not nextCharacter:
             state = 100
-            TokenType = Type.NUM
+            TokenType = Token_Type.NUM
             characterBuffer = nextCharacter
         elif state == 3 and nextCharacter in digits:
             state = 3
@@ -871,10 +831,10 @@ def get_next_token(file):
             lexeme += nextCharacter
         elif state == 4:
             state = 100
-            LexicalError(lexeme, ERROR_Type.INVALID_NUMBER, lineno)
+            Lexical_Error(lexeme, ERROR_Type.INVALID_NUMBER, lineno)
         elif state == 3:
             state = 100
-            TokenType = Type.NUM
+            TokenType = Token_Type.NUM
             characterBuffer = nextCharacter
         # matching SYMBOL using state 5 & 6 & 7
         elif state == 0 and nextCharacter in symbols:
@@ -887,7 +847,7 @@ def get_next_token(file):
         elif state == 5 and nextCharacter == "=":
             state = 100
             lexeme += nextCharacter
-            TokenType = Type.SYMBOL
+            TokenType = Token_Type.SYMBOL
         # handling invalid char after "="
         elif state == 5 and not nextCharacter:
             state = 7
@@ -896,21 +856,21 @@ def get_next_token(file):
                 and not (nextCharacter.isspace()) and nextCharacter != "*" and nextCharacter != "/":
             state = 100
             lexeme += nextCharacter
-            LexicalError(lexeme, ERROR_Type.INVALID_INPUT, lineno)
+            Lexical_Error(lexeme, ERROR_Type.INVALID_INPUT, lineno)
         elif state == 5:
             state = 100
-            TokenType = Type.SYMBOL
+            TokenType = Token_Type.SYMBOL
             characterBuffer = nextCharacter
         elif state == 7:
             state = 100
-            TokenType = Type.SYMBOL
+            TokenType = Token_Type.SYMBOL
             # matching WHITESPACE using state 8 & 9 & 10
         elif state == 0 and nextCharacter.isspace():
             lexeme += nextCharacter
             state = 100
             if nextCharacter == '\n':
                 lineno += 1
-            TokenType = Type.WHITESPACE
+            TokenType = Token_Type.WHITESPACE
             # matching comments using states starting from 11
         elif state == 0 and nextCharacter == "/":
             comment_start_line = lineno
@@ -924,7 +884,7 @@ def get_next_token(file):
         elif state == 11 and nextCharacter != "*":
             state = 16
         elif state == 12 and nextCharacter == "":
-            LexicalError("/*" + lexeme[0:5] + "...", ERROR_Type.UNCLOSED_COMMENT, comment_start_line)
+            Lexical_Error("/*" + lexeme[0:5] + "...", ERROR_Type.UNCLOSED_COMMENT, comment_start_line)
             return 0
         elif state == 12 and nextCharacter != "*":
             lexeme += nextCharacter
@@ -948,7 +908,7 @@ def get_next_token(file):
             state = 12
         elif state == 13 and nextCharacter == "/":
             lexeme = lexeme.rstrip(lexeme[-1])
-            TokenType = Type.COMMENT
+            TokenType = Token_Type.COMMENT
             state = 100
         # detecting unmatched comments using states 14
         elif state == 0 and nextCharacter == "*":
@@ -960,13 +920,13 @@ def get_next_token(file):
         elif state == 14 and nextCharacter == "/":
             state = 100
             lexeme += nextCharacter
-            LexicalError(lexeme, ERROR_Type.UNMATCHED_COMMENT, lineno)
+            Lexical_Error(lexeme, ERROR_Type.UNMATCHED_COMMENT, lineno)
         elif state == 14 and not (65 <= ord(nextCharacter) <= 90 or 97 <= ord(nextCharacter) <= 122
                                   or nextCharacter in digits or nextCharacter in symbols) \
                 and not (nextCharacter.isspace()) and nextCharacter != "/":
             state = 100
             lexeme += nextCharacter
-            LexicalError(lexeme, ERROR_Type.INVALID_INPUT, lineno)
+            Lexical_Error(lexeme, ERROR_Type.INVALID_INPUT, lineno)
         elif state == 14 and nextCharacter != "/":
             state = 7
             characterBuffer = nextCharacter
@@ -979,19 +939,19 @@ def get_next_token(file):
         elif state == 15:
             state = 100
             characterBuffer = nextCharacter
-            LexicalError(lexeme, ERROR_Type.INVALID_INPUT, lineno)
+            Lexical_Error(lexeme, ERROR_Type.INVALID_INPUT, lineno)
         elif state == 16 and not (65 <= ord(nextCharacter) <= 90 or 97 <= ord(
                 nextCharacter) <= 122 or nextCharacter in digits or nextCharacter in symbols) and not (
                 nextCharacter.isspace()) and nextCharacter != "/":
             state = 100
             lexeme += nextCharacter
-            LexicalError(lexeme, ERROR_Type.INVALID_INPUT, lineno)
+            Lexical_Error(lexeme, ERROR_Type.INVALID_INPUT, lineno)
         elif state == 16:
             state = 100
             characterBuffer = nextCharacter
-            LexicalError(lexeme, ERROR_Type.INVALID_INPUT, lineno)
+            Lexical_Error(lexeme, ERROR_Type.INVALID_INPUT, lineno)
 
-    if TokenType != Type.COMMENT and TokenType != Type.WHITESPACE and TokenType is not None:
+    if TokenType != Token_Type.COMMENT and TokenType != Token_Type.WHITESPACE and TokenType is not None:
         Token(lexeme, TokenType, lineno)
 
     return 1
@@ -999,9 +959,9 @@ def get_next_token(file):
 
 def findType(token):
     if token in keywords:
-        return Type.KEYWORD
+        return Token_Type.KEYWORD
     else:
-        return Type.ID
+        return Token_Type.ID
 
 
 def initial_error_writer():
