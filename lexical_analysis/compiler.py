@@ -152,223 +152,179 @@ follow_set = {
 }
 parse_table = {
     "Program": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Declaration-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Declaration": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Declaration-initial": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Declaration-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Var-declaration-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Fun-declaration-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Type-specifier": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Params": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Param-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Param": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Param-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Compound-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Statement-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Statement": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Expression-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Selection-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Iteration-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Return-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Return-stmt-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Expression": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "B": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "H": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Simple-expression-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Simple-expression-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "C": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Relop": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Additive-expression": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Additive-expression-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Additive-expression-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "D": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Addop": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Term": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Term-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Term-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "G": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Factor": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Var-call-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Var-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Factor-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Factor-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Args": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Arg-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     },
     "Arg-list-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [],
-        "return": [],
+        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
         ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
     }
 }
@@ -382,7 +338,7 @@ def main():
         Token(keyword, Token_Type.KEYWORD, needToAddToTokenList=False)
 
     input_file = open("input.txt", "r")
-    #  constructParsingTable()
+    constructParsingTable()
     # for nonTerminal in parse_table:
     #     print("")
     #     print(nonTerminal, end="        ")
@@ -390,28 +346,17 @@ def main():
     #         print(str(parse_table[nonTerminal][terminal]) + ", " + str(terminal), end="    ")
 
     lookahead = get_next_token(input_file)
-    print(lookahead)
     program()  # parse starts
     write_syntax_error()
 
     input_file.close()
 
 
-def write_syntax_error():
-    file = open("syntax_errors.txt", "w")
-    if len(syntax_error_list) != 0:
-        for error in syntax_error_list:
-            file.write(str(error))
-    else:
-        file.write("There is no syntax error.")
-    file.close()
-
-
 def constructParsingTable():
     for nonTerminal in parse_table:
         for RHS in grammar[nonTerminal]:
             for terminal in parse_table[nonTerminal]:
-                if terminal in first_set[RHS] and RHS != ['EPSILON']:
+                if terminal in first_set[RHS] and RHS != ["EPSILON"]:
                     parse_table[nonTerminal][terminal].append(RHS)
             if "EPSILON" in first_set[RHS]:
                 for t in follow_set[RHS]:
@@ -420,16 +365,6 @@ def constructParsingTable():
             for t in follow_set[RHS]:
                 if not parse_table[nonTerminal][t]:
                     parse_table[nonTerminal][t].append("synch")
-
-
-class Syntax_Error:
-    def __init__(self, line=0, errorType=""):
-        self.line = line
-        self.errorType = errorType
-        syntax_error_list.append(self)
-
-    def __str__(self) -> str:
-        return "#" + str(self.line) + " : syntax error, " + self.errorType
 
 
 def match(type, terminal=''):
@@ -548,7 +483,7 @@ def statement():
         elif lookahead == ";":
             match(Token_Type.SYMBOL, ";")
         else:
-            print("error")
+            Syntax_Error()
     elif lookahead in first_set["Compound_stmt"]:  # Statement -> Compound_stmt
         compound_stmt()
     elif lookahead in first_set["Selection_stmt"]:  # Statement -> Selection_stmt
@@ -574,9 +509,9 @@ def statement():
         elif lookahead == ";":
             match(Token_Type.SYMBOL, ";")
         else:
-            print("error")
+            Syntax_Error()
     else:
-        print("error")
+        Syntax_Error()
 
 
 def expression():
@@ -592,7 +527,7 @@ def expression():
         elif lookahead.type is Token_Type.NUM:  # Factor-zegond -> NUM
             match(Token_Type.NUM)
         else:
-            return "error"
+            Syntax_Error()
         g()
         # call Additive-expression-zegond
         d()
@@ -616,7 +551,7 @@ def expression():
                 d()
                 c()
             else:
-                return "error"
+                Syntax_Error()
         elif lookahead in first_set["Simple_expression_prime"]:  # B -> Simple_expression_prime
             if lookahead == "(":
                 match(Token_Type.SYMBOL, "(")
@@ -628,9 +563,9 @@ def expression():
             d()
             c()
         else:
-            return "error"
+            Syntax_Error()
     else:
-        print("error")
+        Syntax_Error()
 
 
 def c():
@@ -640,7 +575,7 @@ def c():
         elif lookahead == "==":  # Relop -> ==
             match(Token_Type.SYMBOL, "==")
         else:
-            return "error"
+            Syntax_Error()
         # Additive-expression -> Term D
         factor()
         g()
@@ -656,7 +591,7 @@ def d():
         elif lookahead == "-":  # Addop -> -
             match(Token_Type.SYMBOL, "-")
         else:
-            return "error"
+            Syntax_Error()
         # call Term
         factor()
         g()
@@ -696,11 +631,11 @@ def factor():
             else:  # Var-prime -> EPSILON
                 return
         else:
-            return "error"
+            Syntax_Error()
     elif lookahead is Token_Type.NUM:  # Factor -> NUM
         match(Token_Type.NUM)
     else:
-        return "error"
+        Syntax_Error()
 
 
 def args():
@@ -723,6 +658,36 @@ def arg_list_prime():
 
 def isNonTerminal(symbol):
     return symbol in grammar.keys()
+
+
+class Syntax_Error_Type(Enum):
+    MISSING = "missing"
+    ILLEGAL = "illegal"
+    UNEXPECTED_EOF = "Unexpected EOF"
+
+
+class Syntax_Error:
+    def __init__(self, token, errorType=Syntax_Error_Type.MISSING):
+        self.line = token.line
+        self.errorType = errorType
+        if token.type == Token_Type.SYMBOL or token.type == Token_Type.KEYWORD:
+            self.text = token.lexeme
+        else:
+            self.text = token.type
+        syntax_error_list.append(self)
+
+    def __str__(self):
+        return "#" + str(self.line) + " : syntax error, " + str(self.errorType) + " " + text  # ????????
+
+
+def write_syntax_error():
+    file = open("syntax_errors.txt", "w")
+    if len(syntax_error_list) != 0:
+        for error in syntax_error_list:
+            file.write(str(error))
+    else:
+        file.write("There is no syntax error.")
+    file.close()
 
 
 class Token_Type(Enum):
@@ -762,7 +727,7 @@ class Lexical_Error:
         self.line = line
         error_list.append(self)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "(" + self.lexeme + ", " + self.type.value + ")"
 
 
