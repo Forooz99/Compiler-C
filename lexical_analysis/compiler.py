@@ -1,5 +1,5 @@
 from enum import Enum
-#from anytree import Node, RenderTree
+from anytree import Node, RenderTree
 
 # Alireza Foroodniya 99105645, Foroozan Iraji 99105272
 digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
@@ -12,6 +12,7 @@ characterBuffer = None
 lineno = 1
 input_file = None
 lookahead = None
+rootNode = None
 grammar = {
     "Program": [["Declaration-list"]],
     "Declaration-list": [["Declaration", "Declaration-list"], ["EPSILON"]],
@@ -61,20 +62,27 @@ grammar = {
 first_set = {
     "Program": ["EPSILON", "int", "void"],
     "Declaration-list": ["EPSILON", "int", "void"],
+    "Declaration Declaration-list": ["int", "void"],
     "Declaration": ["int", "void"],
+    "Declaration-initial Declaration-prime": ["int", "void"],
     "Declaration-initial": ["int", "void"],
+    "Type-specifier ID": ["int", "void"],
     "Declaration-prime": ["(", ";", "["],
     "Var-declaration-prime": [";", "["],
     "Fun-declaration-prime": ["("],
+    "( Params ) Compound-stmt": ["("],
     "Type-specifier": ["int", "void"],
     "Params": ["int", "void"],
     "Param-list": [",", "EPSILON"],
     "Param": ["int", "void"],
+    "Declaration-initial Param-prime": ["int", "void"],
     "Param-prime": ["[", "EPSILON"],
     "Compound-stmt": ["{"],
     "Statement-list": ["EPSILON", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
+    "Statement Statement-list": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
     "Statement": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
     "Expression-stmt": ["break", ";", "ID", "(", "NUM"],
+    "Expression ;": ["ID", "(", "NUM"],
     "Selection-stmt": ["if"],
     "Iteration-stmt": ["repeat"],
     "Return-stmt": ["return"],
@@ -82,26 +90,36 @@ first_set = {
     "Expression": ["ID", "(", "NUM"],
     "B": ["=", "[", "(", "EPSILON"],
     "H": ["=", "*", "EPSILON"],
+    "G D C": ["*", "+", "-", "EPSILON", "<", "=="],
     "Simple-expression-zegond": ["(", "NUM"],
+    "Additive-expression-zegond C": ["(", "NUM"],
     "Simple-expression-prime": ["(", "EPSILON"],
+    "Additive-expression-prime C": ["(", "EPSILON", "<", "=="],
     "C": ["EPSILON", "<", "=="],
-    "Relop": [["<"], ["=="]],
+    "Relop Additive-expression": ["<", "=="],
+    "Relop": ["<", "=="],
     "Additive-expression": ["(", "ID", "NUM"],
+    "Term D": ["(", "ID", "NUM"],
     "Additive-expression-prime": ["(", "EPSILON"],
+    "Term-prime D": ["(", "EPSILON", "+", "-"],
     "Additive-expression-zegond": ["(", "NUM"],
+    "Term-zegond D": ["(", "NUM"],
     "D": ["EPSILON", "+", "-"],
+    "Addop Term D": ["+", "-"],
     "Addop": ["+", "-"],
     "Term": ["(", "ID", "NUM"],
+    "Factor G": ["(", "ID", "NUM"],
     "Term-prime": ["(", "EPSILON"],
+    "Factor-prime G": ["(", "EPSILON", "*"],
     "Term-zegond": ["(", "NUM"],
+    "Factor-zegond G": ["(", "NUM"],
     "G": ["*", "EPSILON"],
     "Factor": ["(", "ID", "NUM"],
     "Var-call-prime": ["(", "[", "EPSILON"],
-    "Var-prime": ["[", "EPSILON"],
-    "Factor-prime": ["(", "EPSILON"],
     "Factor-zegond": ["(", "NUM"],
     "Args": ["ID", "(", "NUM", "EPSILON"],
     "Arg-list": ["ID", "(", "NUM"],
+    "Expression Arg-list-prime": ["ID", "(", "NUM"],
     "Arg-list-prime": [",", "EPSILON"]
 }
 follow_set = {
@@ -152,180 +170,180 @@ follow_set = {
 }
 parse_table = {
     "Program": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Declaration-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Declaration": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Declaration-initial": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Declaration-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Var-declaration-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Fun-declaration-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Type-specifier": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Params": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Param-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Param": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Param-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Compound-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Statement-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Statement": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Expression-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Selection-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Iteration-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Return-stmt": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Return-stmt-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Expression": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "B": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "H": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Simple-expression-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Simple-expression-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "C": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Relop": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Additive-expression": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Additive-expression-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Additive-expression-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "D": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Addop": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Term": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Term-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Term-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "G": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Factor": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Var-call-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Var-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Factor-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Factor-zegond": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Args": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Arg-list": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     },
     "Arg-list-prime": {
-        "ID": [], "NUM": [], "void": [], "int": [], "break": [], "if": [], "else": [], "repeat": [], "until": [], "return": [],
-        ")": [], "(": [], ";": [], "[": [], "]": [], ",": [], "$": []
+        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
+        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
     }
 }
 syntax_error_list = []
@@ -338,17 +356,10 @@ def main():
         Token(keyword, Token_Type.KEYWORD, needToAddToTokenList=False)
 
     input_file = open("input.txt", "r")
-    constructParsingTable()
-    # for nonTerminal in parse_table:
-    #     print("")
-    #     print(nonTerminal, end="        ")
-    #     for terminal in parse_table["Program"].keys():
-    #         print(str(parse_table[nonTerminal][terminal]) + ", " + str(terminal), end="    ")
-
-    lookahead = get_next_token(input_file)
+    # constructParsingTable()
     program()  # parse starts
-    write_syntax_error()
-
+    # write_parse_tree()
+    # write_syntax_error()
     input_file.close()
 
 
@@ -367,48 +378,63 @@ def constructParsingTable():
                     parse_table[nonTerminal][t].append("synch")
 
 
-def match(type, terminal=''):
-    global lookahead, input_file
-    if lookahead == terminal:
-        lookahead = get_next_token(input_file)
-    else:
-        return Syntax_Error()
-
-
 def program():
-    Node("Program")
-    if lookahead in first_set["Declaration-list"]:
+    global lookahead, rootNode
+    lookahead = get_next_token(input_file)
+    rootNode = Node("Program")
+    if lookahead.lexeme in first_set["Declaration-list"]:
         declaration_list()
     else:
         return Syntax_Error()
 
 
 def declaration_list():
+    global lookahead
     # Declaration-list -> Declaration Declaration-list
-    if lookahead in first_set["Declaration"]:  # first decleration decleration-list????????????????
+    if lookahead.lexeme in first_set["Declaration Declaration-list"]:
         # Declaration -> Declaration-initial Declaration-prime
         # call Declaration-initial
         declaration_initial()
         # call Declaration-prime
-        if lookahead in first_set["Fun_declaration_prime"]:  # Declaration-prime -> Fun_declaration_prime
+        if lookahead.lexeme in first_set["Fun-declaration-prime"]:  # Declaration-prime -> Fun_declaration_prime
             # call Fun_declaration_prime
-            match(Token_Type.SYMBOL, "(")
+            if lookahead.lexeme == "(":
+                Node(str(lookahead))
+                lookahead = get_next_token(input_file)
+            else:
+                Syntax_Error("(", errorType=Syntax_Error_Type.MISSING)
             # call Params
-            if lookahead == "int":  # Params -> int ID Param-prime Param-list
-                match(Token_Type.KEYWORD, "int")
-                match(Token_Type.ID)
+            if lookahead.lexeme == "int":  # Params -> int ID Param-prime Param-list
+                Node(str(lookahead))
+                lookahead = get_next_token(input_file)
+
+                if lookahead.lexeme == "int":
+                    Node(str(lookahead))
+                    lookahead = get_next_token(input_file)
+                else:
+                    Syntax_Error("int", errorType=Syntax_Error_Type.MISSING)
+
+                if lookahead.type.value == Token_Type.ID:
+                    Node(str(lookahead))
+                    lookahead = get_next_token(input_file)
+                else:
+                    Syntax_Error("", Token_Type.ID, errorType=Syntax_Error_Type.MISSING)
+
                 param_prime()
                 param_list()
-            elif lookahead == "void":  # Params -> void
-                match(Token_Type.KEYWORD, "void")
+            elif lookahead.lexeme == "void":  # Params -> void
+                Node(str(lookahead))
+                lookahead = get_next_token(input_file)
             else:
                 return Syntax_Error()
-            match(Token_Type.SYMBOL, ")")
+            Node(str(lookahead))
+            lookahead = get_next_token(input_file)
             compound_stmt()
-        elif lookahead in first_set["Var_declaration_prime"]:  # Declaration-prime -> Var_declaration_prime
-            if lookahead == ";":  # Var_declaration_prime -> ;
+        elif lookahead.lexeme in first_set["Var-declaration-prime"]:  # Declaration-prime -> Var_declaration_prime
+            if lookahead.lexeme == ";":  # Var_declaration_prime -> ;
+                Node(str(lookahead))
                 match(Token_Type.SYMBOL, ';')
-            elif lookahead == "[":  # Var_declaration_prime -> [ NUM ] ;
+            elif lookahead.lexeme == "[":  # Var_declaration_prime -> [ NUM ] ;
                 match(Token_Type.SYMBOL, '[')
                 match(Token_Type.NUM)
                 match(Token_Type.SYMBOL, ']')
@@ -424,10 +450,12 @@ def declaration_list():
 
 
 def declaration_initial():
+    global lookahead
     # Declaration-initial -> Type-specifier ID
-    if lookahead == "int":  # Type-specifier -> int
+    if lookahead.lexeme == "int":  # Type-specifier -> int
+        Node(str(lookahead))
         match(Token_Type.KEYWORD, "int")
-    elif lookahead == "void":  # Type-specifier -> void
+    elif lookahead.lexeme == "void":  # Type-specifier -> void
         match(Token_Type.KEYWORD, "void")
     else:
         return Syntax_Error()
@@ -435,7 +463,9 @@ def declaration_initial():
 
 
 def param_list():
-    if lookahead == ",":  # Param-list -> , Param Param-list
+    global lookahead
+    if lookahead.lexeme == ",":  # Param-list -> , Param Param-list
+        Node(str(lookahead))
         match(Token_Type.SYMBOL, ",")
         # call Param
         declaration_initial()
@@ -447,7 +477,9 @@ def param_list():
 
 
 def param_prime():
-    if lookahead == "[":  # Param-prime -> [ ]
+    global lookahead
+    if lookahead.lexeme == "[":  # Param-prime -> [ ]
+        Node(str(lookahead))
         match(Token_Type.SYMBOL, "[")
         match(Token_Type.SYMBOL, "]")
     else:  # Param-prime -> EPSILON
@@ -455,7 +487,9 @@ def param_prime():
 
 
 def compound_stmt():
-    if lookahead == "{":  # Compound-stmt -> { Declaration-list Statement-list }
+    global lookahead
+    if lookahead.lexeme == "{":  # Compound-stmt -> { Declaration-list Statement-list }
+        Node(str(lookahead))
         match(Token_Type.SYMBOL, "{")
         declaration_list()
         statement_list()
@@ -465,7 +499,8 @@ def compound_stmt():
 
 
 def statement_list():
-    if lookahead in first_set["Statement"]:  # Statement-list -> Statement Statement-list ????????????????
+    global lookahead
+    if lookahead.lexeme in first_set["Statement"] or lookahead.type.value in first_set["Statement"]:  # Statement-list -> Statement Statement-list ????????????????
         statement()
         statement_list()
     else:  # Statement-list -> EPSILON
@@ -473,20 +508,21 @@ def statement_list():
 
 
 def statement():
-    if lookahead in first_set["Expression_stmt"]:  # Statement -> Expression_stmt
-        if lookahead in first_set["Expression"]:
+    global lookahead
+    if lookahead.lexeme in first_set["Expression-stmt"] or lookahead.type.value in first_set["Expression-stmt"]:  # Statement -> Expression_stmt
+        if lookahead.lexeme in first_set["Expression"] or lookahead.type.value in first_set["Expression"]:
             expression()
             match(Token_Type.SYMBOL, ";")
-        elif lookahead == "break":
+        elif lookahead.lexeme == "break":
             match(Token_Type.KEYWORD, "break")
             match(Token_Type.SYMBOL, ";")
-        elif lookahead == ";":
+        elif lookahead.lexeme == ";":
             match(Token_Type.SYMBOL, ";")
         else:
             Syntax_Error()
-    elif lookahead in first_set["Compound_stmt"]:  # Statement -> Compound_stmt
+    elif lookahead.lexeme in first_set["Compound-stmt"] or lookahead.type.value in first_set["Compound-stmt"]:  # Statement -> Compound_stmt
         compound_stmt()
-    elif lookahead in first_set["Selection_stmt"]:  # Statement -> Selection_stmt
+    elif lookahead.lexeme in first_set["Selection-stmt"] or lookahead.type.value in first_set["Selection-stmt"]:  # Statement -> Selection_stmt
         match(Token_Type.KEYWORD, "if")
         match(Token_Type.SYMBOL, "(")
         expression()
@@ -494,19 +530,19 @@ def statement():
         statement()
         match(Token_Type.KEYWORD, "else")
         statement()
-    elif lookahead in first_set["Iteration_stmt"]:  # Statement -> Iteration_stmt
+    elif lookahead.lexeme in first_set["Iteration-stmt"] or lookahead.type.value in first_set["Iteration-stmt"]:  # Statement -> Iteration_stmt
         match(Token_Type.KEYWORD, "repeat")
         statement()
         match(Token_Type.KEYWORD, "until")
         match(Token_Type.SYMBOL, "(")
         expression()
         match(Token_Type.SYMBOL, ")")
-    elif lookahead in first_set["Return_stmt"]:  # Statement -> Return_stmt
+    elif lookahead.lexeme in first_set["Return-stmt"] or lookahead.type.value in first_set["Return-stmt"]:  # Statement -> Return_stmt
         match(Token_Type.KEYWORD, "return")
-        if lookahead in first_set["Expression"]:
+        if lookahead.lexeme in first_set["Expression"] or lookahead.type.value in first_set["Expression"]:
             expression()
             match(Token_Type.SYMBOL, ";")
-        elif lookahead == ";":
+        elif lookahead.lexeme == ";":
             match(Token_Type.SYMBOL, ";")
         else:
             Syntax_Error()
@@ -515,12 +551,14 @@ def statement():
 
 
 def expression():
-    if lookahead in first_set["Simple_expression_zegond"]:  # Expression -> Simple_expression_zegond
+    global lookahead
+    if lookahead.lexeme in first_set["Simple-expression-zegond"] or lookahead.type.value in first_set["Simple-expression-zegond"]:  # Expression -> Simple_expression_zegond
         # Simple_expression_zegond -> Additive-expression-zegond C
         # Additive-expression-zegond -> Term-zegond D
         # Term-zegond -> Factor-zegond G
         # call Term-zegond
         if lookahead == "(":  # Factor-zegond -> ( Expression )
+            Node(str(lookahead))
             match(Token_Type.SYMBOL, "(")
             expression()
             match(Token_Type.SYMBOL, ")")
@@ -536,24 +574,27 @@ def expression():
     elif lookahead.type is Token_Type.ID:  # Expression -> ID B
         match(Token_Type.ID)
         # call B
-        if lookahead == "=":  # B -> = Expression
+        if lookahead.lexeme == "=":  # B -> = Expression
+            Node(str(lookahead))
             match(Token_Type.SYMBOL, "=")
             expression()
-        elif lookahead == "[":  # B -> [ Expression ] H
+        elif lookahead.lexeme == "[":  # B -> [ Expression ] H
             match(Token_Type.SYMBOL, "[")
             expression()
             match(Token_Type.SYMBOL, "]")
-            if lookahead == "=":  # H -> = Expression
+            if lookahead.lexeme == "=":  # H -> = Expression
+                Node(str(lookahead))
                 match(Token_Type.SYMBOL, "=")
                 expression()
-            elif lookahead in first_set["G"]:  # H -> G D C
+            elif lookahead.lexeme in first_set["G"] or lookahead.type.value in first_set["G"]:  # H -> G D C
                 g()
                 d()
                 c()
             else:
                 Syntax_Error()
-        elif lookahead in first_set["Simple_expression_prime"]:  # B -> Simple_expression_prime
-            if lookahead == "(":
+        elif lookahead.lexeme in first_set["Simple-expression-prime"] or lookahead.type.value in first_set["Simple-expression-prime"]:  # B -> Simple_expression_prime
+            if lookahead.lexeme == "(":
+                Node(str(lookahead))
                 match(Token_Type.SYMBOL, "(")
                 args()
                 match(Token_Type.SYMBOL, ")")
@@ -569,10 +610,12 @@ def expression():
 
 
 def c():
-    if lookahead in first_set["Relop"]:  # C -> Relop Additive-expression
-        if lookahead == "<":  # Relop -> <
+    global lookahead
+    if lookahead.lexeme in first_set["Relop"] or lookahead.type.value in first_set["Relop"]:  # C -> Relop Additive-expression
+        if lookahead.lexeme == "<":  # Relop -> <
+            Node(str(lookahead))
             match(Token_Type.SYMBOL, "<")
-        elif lookahead == "==":  # Relop -> ==
+        elif lookahead.lexeme == "==":  # Relop -> ==
             match(Token_Type.SYMBOL, "==")
         else:
             Syntax_Error()
@@ -585,10 +628,12 @@ def c():
 
 
 def d():
-    if lookahead in first_set["Addop"]:  # D -> Addop Term D
-        if lookahead == "+":  # Addop -> +
+    global lookahead
+    if lookahead.lexeme in first_set["Addop"] or lookahead.type.value in first_set["Addop"]:  # D -> Addop Term D
+        if lookahead.lexeme == "+":  # Addop -> +
+            Node(str(lookahead))
             match(Token_Type.SYMBOL, "+")
-        elif lookahead == "-":  # Addop -> -
+        elif lookahead.lexeme == "-":  # Addop -> -
             match(Token_Type.SYMBOL, "-")
         else:
             Syntax_Error()
@@ -602,7 +647,9 @@ def d():
 
 
 def g():
-    if lookahead == "*":  # G -> * Factor G
+    global lookahead
+    if lookahead.lexeme == "*":  # G -> * Factor G
+        Node(str(lookahead))
         match(Token_Type.SYMBOL, "*")
         factor()
         g()
@@ -611,20 +658,24 @@ def g():
 
 
 def factor():
-    if lookahead == "(":  # Factor -> ( Expression )
+    global lookahead
+    if lookahead.lexeme == "(":  # Factor -> ( Expression )
+        Node(str(lookahead))
         match(Token_Type.SYMBOL, "(")
         expression()
         match(Token_Type.SYMBOL, ")")
     elif lookahead is Token_Type.ID:  # Factor -> ID Var-call-prime
         match(Token_Type.ID)
         # call Var-call-prime
-        if lookahead == "(":  # Var-call-prime -> ( Args )
+        if lookahead.lexeme == "(":  # Var-call-prime -> ( Args )
+            Node(str(lookahead))
             match(Token_Type.SYMBOL, "(")
             args()
             match(Token_Type.SYMBOL, ")")
-        elif lookahead in first_set["Var_prime"]:  # Var-call-prime -> Var-prime
+        elif lookahead.lexeme in first_set["Var-prime"] or lookahead.type.value in first_set["Var-prime"]:  # Var-call-prime -> Var-prime
             # call Var-prime
-            if lookahead == "[":  # Var-prime -> [ Expression ]
+            if lookahead.lexeme == "[":  # Var-prime -> [ Expression ]
+                Node(str(lookahead))
                 match(Token_Type.SYMBOL, "[")
                 expression()
                 match(Token_Type.SYMBOL, "]")
@@ -632,14 +683,15 @@ def factor():
                 return
         else:
             Syntax_Error()
-    elif lookahead is Token_Type.NUM:  # Factor -> NUM
+    elif lookahead.type is Token_Type.NUM:  # Factor -> NUM
         match(Token_Type.NUM)
     else:
         Syntax_Error()
 
 
 def args():
-    if lookahead in first_set["Arg_list"]:  # Args -> Arg-list
+    global lookahead
+    if lookahead.lexeme in first_set["Arg-list"] or lookahead.type.value in first_set["Arg-list"]:  # Args -> Arg-list
         # Arg-list -> Expression Arg-list-prime
         expression()
         arg_list_prime()
@@ -648,7 +700,9 @@ def args():
 
 
 def arg_list_prime():
-    if lookahead == ",":  # Arg-list-prime -> , Expression Arg-list-prime
+    global lookahead
+    if lookahead.lexeme == ",":  # Arg-list-prime -> , Expression Arg-list-prime
+        Node(str(lookahead))
         match(Token_Type.SYMBOL, ",")
         expression()
         arg_list_prime()
@@ -667,17 +721,20 @@ class Syntax_Error_Type(Enum):
 
 
 class Syntax_Error:
-    def __init__(self, token, errorType=Syntax_Error_Type.MISSING):
-        self.line = token.line
-        self.errorType = errorType
-        if token.type == Token_Type.SYMBOL or token.type == Token_Type.KEYWORD:
-            self.text = token.lexeme
+    def __init__(self, lexeme, type=Token_Type.KEYWORD, errorType=Syntax_Error_Type.MISSING):
+        if lexeme == "":
+            self.text = " " + errorType.value + " " + type.value
         else:
-            self.text = token.type
+            self.text = " " + errorType.value + " " + lexeme
+        self.line = lookahead.line
+        self.errorType = errorType
+        # if parse_table[nonTerminal][lookahead] == "synch":
+        #
+        # else:
         syntax_error_list.append(self)
 
     def __str__(self):
-        return "#" + str(self.line) + " : syntax error, " + str(self.errorType) + " " + text  # ????????
+        return "#" + str(self.line) + " : syntax error, " + str(self.errorType) + text
 
 
 def write_syntax_error():
@@ -690,13 +747,20 @@ def write_syntax_error():
     file.close()
 
 
+def write_parse_tree():
+    file = open("parse_tree.txt", "w")
+    for pre, fill, node in RenderTree(rootNode):
+        file.write("%s%s" % (pre, node.name))
+    file.close()
+
+
 class Token_Type(Enum):
-    NUM = 1
-    ID = 2
-    KEYWORD = 3
-    SYMBOL = 4
-    COMMENT = 5
-    WHITESPACE = 6
+    NUM = "NUM"
+    ID = "ID"
+    KEYWORD = "KEYWORD"
+    SYMBOL = "SYMBOL"
+    COMMENT = "COMMENT"
+    WHITESPACE = "WHITESPACE"
 
 
 class ERROR_Type(Enum):
