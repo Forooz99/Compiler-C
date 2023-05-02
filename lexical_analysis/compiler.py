@@ -1,5 +1,5 @@
 from enum import Enum
-from anytree import Node, RenderTree
+#from anytree import Node, RenderTree
 
 # Alireza Foroodniya 99105645, Foroozan Iraji 99105272
 digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
@@ -916,10 +916,14 @@ def get_next_token(file):
             characterBuffer = nextCharacter
             Lexical_Error(lexeme, ERROR_Type.INVALID_INPUT, lineno)
 
-    if TokenType != Token_Type.COMMENT and TokenType != Token_Type.WHITESPACE and TokenType is not None:
-        Token(lexeme, TokenType, lineno)
+    out_put = None    
 
-    return 1
+    if TokenType != Token_Type.COMMENT and TokenType != Token_Type.WHITESPACE and TokenType is not None:
+        out_put = Token(lexeme, TokenType, lineno)
+    else :
+        out_put = get_next_token(input_file)
+
+    return out_put
 
 
 def findType(token):
