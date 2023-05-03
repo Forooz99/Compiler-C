@@ -1,5 +1,5 @@
 from enum import Enum
-from anytree import Node, RenderTree
+# from anytree import Node, RenderTree
 
 # Alireza Foroodniya 99105645, Foroozan Iraji 99105272
 digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
@@ -59,64 +59,7 @@ grammar = {
     "Arg-list": [["Expression", "Arg-list-prime"]],
     "Arg-list-prime": [[",", "Expression", "Arg-list-prime"], ["EPSILON"]]
 }
-first_set = {
-  'Program': [ 'Declaration', 'epsilon' ],
-  'Declaration-list': [ 'Declaration', 'epsilon' ],
-  'undefined': [ 'int', 'void' ],
-  'Declaration-initial': [ 'int', 'void' ],
-  'Declaration-prime': [ '(', ';', '[' ],
-  'Var-declaration-prime': [ ';', '[' ],
-  'Fun-declaration-prime': [ '(' ],
-  'Type-specifier': [ 'int', 'void' ],
-  'Params': [ 'int', 'void' ],
-  'Param-list': [ ',', 'epsilon' ],
-  'Param': [ 'int', 'void' ],
-  'Param-prime': [ '[', 'epsilon' ],
-  'Compound-stmt': [ '{' ],
-  'Statement-list': [
-    'epsilon', '{',
-    'break',   ';',
-    'if',      'repeat',
-    'return',  'ID',
-    '(',       'NUM'
-  ],
-  'Statement': [
-    '{',      'break',
-    ';',      'if',
-    'repeat', 'return',
-    'ID',     '(',
-    'NUM'
-  ],
-  'Expression-stmt': [ 'break', ';', 'ID', '(', 'NUM' ],
-  'Selection-stmt': [ 'if' ],
-  'Iteration-stmt': [ 'repeat' ],
-  'Return-stmt': [ 'return' ],
-  'Return-stmt-prime': [ ';', 'ID', '(', 'NUM' ],
-  'Expression': [ 'ID', '(', 'NUM' ],
-  'B': [ '=', '[', '(', 'epsilon' ],
-  'H': [ '=', '*', 'epsilon' ],
-  'Simple-expression-zegond': [ '(', 'NUM' ],
-  'Simple-expression-prime': [ '(', 'epsilon' ],
-  'C': [ 'epsilon', '<', '==' ],
-  'Relop': [ '<', '==' ],
-  'Additive-expression': [ '(', 'ID', 'NUM' ],
-  'Additive-expression-prime': [ '(', 'epsilon' ],
-  'Additive-expression-zegond': [ '(', 'NUM' ],
-  'D': [ 'epsilon', '+', '-' ],
-  'Addop': [ '+', '-' ],
-  'Term': [ '(', 'ID', 'NUM' ],
-  'Term-prime': [ '(', 'epsilon' ],
-  'Term-zegond': [ '(', 'NUM' ],
-  'G': [ '*', 'epsilon' ],
-  'Factor': [ '(', 'ID', 'NUM' ],
-  'Var-call-prime': [ '(', '[', 'epsilon' ],
-  'Var-prime': [ '[', 'epsilon' ],
-  'Factor-prime': [ '(', 'epsilon' ],
-  'Factor-zegond': [ '(', 'NUM' ],
-  'Args': [ 'epsilon', 'ID', '(', 'NUM' ],
-  'Arg-list': [ 'ID', '(', 'NUM' ],
-  'Arg-list-prime': [ ',', 'epsilon' ]
-}
+first__set = {}
 follow_set = {
 
     'Program': ['$'],
@@ -406,6 +349,12 @@ def main():
     # write_syntax_error()
     input_file.close()
 
+    for i in syntax_error_list:
+        print(i)
+
+    
+    
+
 
 def constructParsingTable():
     for nonTerminal in parse_table:
@@ -425,6 +374,9 @@ def constructParsingTable():
 def first(string):
     first_set = set()
 
+    if string in first__set.keys():
+        return first__set[string] 
+
     inputs = string.split()
     if len(inputs) > 1:
         for i in range(0, len(inputs)):
@@ -433,6 +385,7 @@ def first(string):
                 first_set.remove("EPSILON")
             elif 'EPSILON' not in first_set:
                 break
+        first__set[string] = first_set    
         return first_set
     else:
         terminal_has_epsilon = False
@@ -468,7 +421,7 @@ def first(string):
 
         if terminal_has_epsilon:
             first_set.add("EPSILON")
-
+        first__set[string] = first_set 
         return first_set
 
 
@@ -478,10 +431,13 @@ def isNonTerminal(nonTerminal):
 
 def match(terminal):
     global lookahead
-    if (terminal is Token_Type and lookahead.type.value == terminal) or lookahead == terminal:  # ID NUM
+    if (((terminal == Token_Type.ID) or (terminal == Token_Type.NUM)) and lookahead.type == terminal) or lookahead.lexeme == terminal:  # ID NUM
         lookahead = get_next_token(input_file)
+        print(lookahead)
     else:
         Syntax_Error("Fun-declaration-prime", errorType=Syntax_Error_Type.MISSING)  # not matched with declaration-list
+
+    
 
 
 def checkError(currentState):
@@ -794,7 +750,7 @@ def c():
     # C -> Relop Additive-expression | EPSILON
     if lookahead.lexeme in first("Relop Additive-expression") or lookahead.type.value in first("Relop Additive-expression"):  # C -> Relop Additive-expression
         relop()
-        additive-expression()
+        additive_expression()
     elif lookahead.lexeme in follow_set["C"] or lookahead.type.value in follow_set["C"]:  # C -> EPSILON
         return
     else:
@@ -938,6 +894,107 @@ def arg_list_prime():
         arg_list_prime()
 
 
+#by forood 
+
+def term_zegond():
+    global lookahead
+    if lookahead.lexeme in first("Factor-zegond G") or lookahead.type.value in first("Factor-zegond G"):
+        factor_zegond()
+        g()
+    else:
+        print("error must be handeld in term zegond")
+
+
+def factor_zegond():
+    if lookahead.lexeme == "(":
+        match("(")
+        expression()
+        match(")")
+
+    elif lookahead.type == Token_Type.ID:
+        match(Token_Type.ID)
+
+    else:
+        print("error must be handeld in factor zegond")
+
+
+def b():
+    if lookahead.lexeme == "=":
+        match("=")
+        expression()
+    elif lookahead.lexeme == "[":
+        match("[")
+        expression()
+        match("]")
+        h()
+
+    if lookahead.lexeme in first("Simple-expression-prime") or lookahead.type.value in first("Simple-expression-prime"):
+        simple_expression_prime()
+
+def h():
+    if lookahead.lexeme == "=":
+        match("=")
+    elif lookahead.lexeme in first("G D C") or lookahead.type.value in first("G D C"):
+        g()
+        d()
+        c()
+
+
+def additive_expression():
+    if lookahead.lexeme in first("Term D") or lookahead.type.value in first("Term D"):
+        term()
+        d()
+    else:  
+        print("error must be handeld in additive_expression")  
+
+def var_prime():
+    if lookahead.lexeme == "[":
+        match("[")
+        expression()
+        match("]")
+    else:
+        print("epsilon must be printed in tree")
+        return
+    
+def simple_expression_prime():
+    if lookahead.lexeme in first("Additive-expression-prime C") or lookahead.type.value in first("Additive-expression-prime C"):
+        additive_expression_prime()
+        c()
+    else:
+        print("must be handeled")
+
+def additive_expression_prime():
+    if lookahead.lexeme in first("Term-prime D") or lookahead.type.value in first("Term-prime D"):
+        term_prime()
+        d()
+
+    else:
+        print("must be handeled")
+
+def term_prime():
+    if lookahead.lexeme in first("Factor-prime G") or lookahead.type.value in first("Factor-prime G"):
+        factor_prime()
+        g()
+
+    else:
+        print("must be handeled")
+
+def factor_prime():
+    if lookahead.lexeme == "(":
+        match("(")
+        args()
+        match(")")
+    else:
+        print("epsilon to be handeled")
+        return
+    
+
+    
+
+    
+
+
+
 class Syntax_Error_Type(Enum):
     MISSING = "missing"
     ILLEGAL = "illegal"
@@ -951,10 +1008,11 @@ class Token_Type(Enum):
     SYMBOL = "SYMBOL"
     COMMENT = "COMMENT"
     WHITESPACE = "WHITESPACE"
+    FINAL = "FINAL"
 
 
 class Syntax_Error:
-    def __init__(self, lexeme, type=Token_Type.KEYWORD, errorType=Syntax_Error_Type.MISSING):
+    def __init__(self, lexeme = "", type=Token_Type.KEYWORD, errorType=Syntax_Error_Type.MISSING):
         if lexeme == "":
             self.text = " " + errorType.value + " " + type.value
         else:
@@ -967,7 +1025,7 @@ class Syntax_Error:
         syntax_error_list.append(self)
 
     def __str__(self):
-        return "#" + str(self.line) + " : syntax error, " + str(self.errorType) + text
+        return "#" + str(self.line) + " : syntax error, " + str(self.errorType)
 
 
 def write_syntax_error():
@@ -1032,7 +1090,7 @@ def get_next_token(file):
         nextCharacter = file.read(1)
 
     if not nextCharacter:
-        return "$"
+        return Token("$", Token_Type.FINAL, 0, False)
 
     while state != 100:
         # matching ID and Keywords Using State 1 & 2
