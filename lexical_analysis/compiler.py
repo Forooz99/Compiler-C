@@ -60,114 +60,157 @@ grammar = {
     "Arg-list-prime": [[",", "Expression", "Arg-list-prime"], ["EPSILON"]]
 }
 first_set = {
-    "Program": ["EPSILON", "int", "void"],
-    "Declaration-list": ["EPSILON", "int", "void"],
-    "Declaration Declaration-list": ["int", "void"],
-    "Declaration": ["int", "void"],
-    "Declaration-initial Declaration-prime": ["int", "void"],
-    "Declaration-initial": ["int", "void"],
-    "Type-specifier ID": ["int", "void"],
-    "Declaration-prime": ["(", ";", "["],
-    "Var-declaration-prime": [";", "["],
-    "Fun-declaration-prime": ["("],
-    "( Params ) Compound-stmt": ["("],
-    "Type-specifier": ["int", "void"],
-    "Params": ["int", "void"],
-    "Param-list": [",", "EPSILON"],
-    "Param": ["int", "void"],
-    "Declaration-initial Param-prime": ["int", "void"],
-    "Param-prime": ["[", "EPSILON"],
-    "Compound-stmt": ["{"],
-    "Statement-list": ["EPSILON", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Statement Statement-list": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Statement": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Expression-stmt": ["break", ";", "ID", "(", "NUM"],
-    "Expression ;": ["ID", "(", "NUM"],
-    "Selection-stmt": ["if"],
-    "Iteration-stmt": ["repeat"],
-    "Return-stmt": ["return"],
-    "Return-stmt-prime": [";", "ID", "(", "NUM"],
-    "Expression": ["ID", "(", "NUM"],
-    "B": ["=", "[", "(", "EPSILON"],
-    "H": ["=", "*", "EPSILON"],
-    "G D C": ["*", "+", "-", "EPSILON", "<", "=="],
-    "Simple-expression-zegond": ["(", "NUM"],
-    "Additive-expression-zegond C": ["(", "NUM"],
-    "Simple-expression-prime": ["(", "EPSILON"],
-    "Additive-expression-prime C": ["(", "EPSILON", "<", "=="],
-    "C": ["EPSILON", "<", "=="],
-    "Relop Additive-expression": ["<", "=="],
-    "Relop": ["<", "=="],
-    "Additive-expression": ["(", "ID", "NUM"],
-    "Term D": ["(", "ID", "NUM"],
-    "Additive-expression-prime": ["(", "EPSILON"],
-    "Term-prime D": ["(", "EPSILON", "+", "-"],
-    "Additive-expression-zegond": ["(", "NUM"],
-    "Term-zegond D": ["(", "NUM"],
-    "D": ["EPSILON", "+", "-"],
-    "Addop Term D": ["+", "-"],
-    "Addop": ["+", "-"],
-    "Term": ["(", "ID", "NUM"],
-    "Factor G": ["(", "ID", "NUM"],
-    "Term-prime": ["(", "EPSILON"],
-    "Factor-prime G": ["(", "EPSILON", "*"],
-    "Term-zegond": ["(", "NUM"],
-    "Factor-zegond G": ["(", "NUM"],
-    "G": ["*", "EPSILON"],
-    "Factor": ["(", "ID", "NUM"],
-    "Var-call-prime": ["(", "[", "EPSILON"],
-    "Factor-zegond": ["(", "NUM"],
-    "Args": ["ID", "(", "NUM", "EPSILON"],
-    "Arg-list": ["ID", "(", "NUM"],
-    "Expression Arg-list-prime": ["ID", "(", "NUM"],
-    "Arg-list-prime": [",", "EPSILON"]
+  'Program': [ 'Declaration', 'epsilon' ],
+  'Declaration-list': [ 'Declaration', 'epsilon' ],
+  'undefined': [ 'int', 'void' ],
+  'Declaration-initial': [ 'int', 'void' ],
+  'Declaration-prime': [ '(', ';', '[' ],
+  'Var-declaration-prime': [ ';', '[' ],
+  'Fun-declaration-prime': [ '(' ],
+  'Type-specifier': [ 'int', 'void' ],
+  'Params': [ 'int', 'void' ],
+  'Param-list': [ ',', 'epsilon' ],
+  'Param': [ 'int', 'void' ],
+  'Param-prime': [ '[', 'epsilon' ],
+  'Compound-stmt': [ '{' ],
+  'Statement-list': [
+    'epsilon', '{',
+    'break',   ';',
+    'if',      'repeat',
+    'return',  'ID',
+    '(',       'NUM'
+  ],
+  'Statement': [
+    '{',      'break',
+    ';',      'if',
+    'repeat', 'return',
+    'ID',     '(',
+    'NUM'
+  ],
+  'Expression-stmt': [ 'break', ';', 'ID', '(', 'NUM' ],
+  'Selection-stmt': [ 'if' ],
+  'Iteration-stmt': [ 'repeat' ],
+  'Return-stmt': [ 'return' ],
+  'Return-stmt-prime': [ ';', 'ID', '(', 'NUM' ],
+  'Expression': [ 'ID', '(', 'NUM' ],
+  'B': [ '=', '[', '(', 'epsilon' ],
+  'H': [ '=', '*', 'epsilon' ],
+  'Simple-expression-zegond': [ '(', 'NUM' ],
+  'Simple-expression-prime': [ '(', 'epsilon' ],
+  'C': [ 'epsilon', '<', '==' ],
+  'Relop': [ '<', '==' ],
+  'Additive-expression': [ '(', 'ID', 'NUM' ],
+  'Additive-expression-prime': [ '(', 'epsilon' ],
+  'Additive-expression-zegond': [ '(', 'NUM' ],
+  'D': [ 'epsilon', '+', '-' ],
+  'Addop': [ '+', '-' ],
+  'Term': [ '(', 'ID', 'NUM' ],
+  'Term-prime': [ '(', 'epsilon' ],
+  'Term-zegond': [ '(', 'NUM' ],
+  'G': [ '*', 'epsilon' ],
+  'Factor': [ '(', 'ID', 'NUM' ],
+  'Var-call-prime': [ '(', '[', 'epsilon' ],
+  'Var-prime': [ '[', 'epsilon' ],
+  'Factor-prime': [ '(', 'epsilon' ],
+  'Factor-zegond': [ '(', 'NUM' ],
+  'Args': [ 'epsilon', 'ID', '(', 'NUM' ],
+  'Arg-list': [ 'ID', '(', 'NUM' ],
+  'Arg-list-prime': [ ',', 'epsilon' ]
 }
 follow_set = {
-    "Program": ["$"],
-    "Declaration-list": ["break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat", "$"],
-    "Declaration": ["int", "void"],
-    "Declaration-initial": ["[", "(", ";"],
-    "Declaration-prime": ["int", "void"],
-    "Var-declaration-prime": ["int", "void"],
-    "Fun-declaration-prime": ["int", "void"],
-    "Type-specifier": ["ID"],
-    "Params": [")"],
-    "Param-list": [")"],
-    "Param": [","],
-    "Param-prime": [","],
-    "Compound-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat", "int", "void"],
-    "Statement-list": ["}"],
-    "Statement": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Expression-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Selection-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Iteration-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Return-stmt": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Return-stmt-prime": ["until", "else", "break", ";", "ID", "(", "NUM", "if", "return", "{", "repeat"],
-    "Expression": [",", ")", "]", ";"],
-    "B": [",", ")", "]", ";"],
-    "H": [",", ")", "]", ";"],
-    "Simple-expression-zegond": [",", ")", "]", ";"],
-    "Simple-expression-prime": [",", ")", "]", ";"],
-    "C": [",", ")", "]", ";"],
-    "Relop": ["(", "ID", "NUM"],
-    "Additive-expression": [",", ")", "]", ";"],
-    "Additive-expression-prime": ["<", "=="],
-    "Additive-expression-zegond": ["<", "=="],
-    "D": ["<", "==", ",", ")", "]", ";"],
-    "Addop": ["(", "ID", "NUM"],
-    "Term": ["+", "-"],
-    "Term-prime": ["+", "-"],
-    "Term-zegond": ["+", "-"],
-    "G": ["+", "-"],
-    "Factor": ["*"],
-    "Var-call-prime": ["*"],
-    "Var-prime": ["*"],
-    "Factor-prime": ["*"],
-    "Factor-zegond": ["*"],
-    "Args": [")"],
-    "Arg-list": [")"],
-    "Arg-list-prime": [")"]
+
+    'Program': ['$'],
+
+    'Declaration-list': ['$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
+
+    'Declaration': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
+
+    'Declaration-initial': ['(', ';', '[', ',', ')'],
+
+    'Declaration-prime': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
+
+    'Var-declaration-prime': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
+
+    'Fun-declaration-prime': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
+
+    'Type-specifier': ['ID'],
+
+    'Params': [')'],
+
+    'Param-list': [')'],
+
+    'Param': [',', ')'],
+
+    'Param-prime': [',', ')'],
+
+    'Compound-stmt': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else',
+
+                      'until'],
+
+    'Statement-list': ['}'],
+
+    'Statement': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
+
+    'Expression-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
+
+    'Selection-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
+
+    'Iteration-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
+
+    'Return-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
+
+    'Return-stmt-prime': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
+
+    'Expression': [';', ')', ']', ','],
+
+    'B': [';', ')', ']', ','],
+
+    'H': [';', ')', ']', ','],
+
+    'Simple-expression-zegond': [';', ')', ']', ','],
+
+    'Simple-expression-prime': [';', ')', ']', ','],
+
+    'C': [';', ')', ']', ','],
+
+    'Relop': ['(', 'ID', 'NUM'],
+
+    'Additive-expression': [';', ')', ']', ','],
+
+    'Additive-expression-prime': ['<', '==', ';', ')', ']', ','],
+
+    'Additive-expression-zegond': ['<', '==', ';', ')', ']', ','],
+
+    'D': ['<', '==', ';', ')', ']', ','],
+
+    'Addop': ['(', 'ID', 'NUM'],
+
+    'Term': ['+', '-', ';', ')', '<', '==', ']', ','],
+
+    'Term-prime': ['+', '-', '<', '==', ';', ')', ']', ','],
+
+    'Term-zegond': ['+', '-', '<', '==', ';', ')', ']', ','],
+
+    'G': ['+', '-', '<', '==', ';', ')', ']', ','],
+
+    'Factor': ['*', '+', '-', ';', ')', '<', '==', ']', ','],
+
+    'Var-call-prime': ['*', '+', '-', ';', ')', '<', '==', ']', ','],
+
+    'Var-prime': ['*', '+', '-', ';', ')', '<', '==', ']', ','],
+
+    'Factor-prime': ['*', '+', '-', '<', '==', ';', ')', ']', ','],
+
+    'Factor-zegond': ['*', '+', '-', '<', '==', ';', ')', ']', ','],
+
+    'Args': [')'],
+
+    'Arg-list': [')'],
+
+    'Arg-list-prime': [')']
+
 }
+
 parse_table = {
     "Program": {
         "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
@@ -347,6 +390,7 @@ parse_table = {
     }
 }
 syntax_error_list = []
+parserState = []
 
 
 def main():
@@ -378,346 +422,535 @@ def constructParsingTable():
                     parse_table[nonTerminal][t].append("synch")
 
 
+def first(string):
+    first_set = set()
+
+    inputs = string.split()
+    if len(inputs) > 1:
+        for i in range(0, len(inputs)):
+            first_set.update(first(inputs[i]))
+            if ('EPSILON' in first_set) and (i != len(inputs) - 1):
+                first_set.remove("EPSILON")
+            elif 'EPSILON' not in first_set:
+                break
+        return first_set
+    else:
+        terminal_has_epsilon = False
+        if isNonTerminal(string):
+            for rule in grammar[string]:
+                new_rule = True
+                rule_has_epsilon = False
+                go_next = False
+                for item in rule:
+
+                    if new_rule:
+                        new_rule = False
+                        first_set = first_set | first(item)
+                        if "EPSILON" in first_set:
+                            go_next = True
+                            first_set.remove("EPSILON")
+                            rule_has_epsilon = True
+
+
+                    elif "EPSILON" in first_set or go_next:
+                        go_next = False
+                        if "EPSILON" in first_set:
+                            first_set.remove("EPSILON")
+                        first_set = first_set | first(item)
+                        rule_has_epsilon = rule_has_epsilon and ("EPSILON" in first_set)
+
+                if "EPSILON" in first_set:
+                    first_set.remove("EPSILON")
+                terminal_has_epsilon = terminal_has_epsilon or rule_has_epsilon
+
+        else:
+            first_set.add(string)  # first(terminal) = terminal
+
+        if terminal_has_epsilon:
+            first_set.add("EPSILON")
+
+        return first_set
+
+
+def isNonTerminal(nonTerminal):
+    return nonTerminal in grammar.keys()
+
+
+def match(terminal):
+    global lookahead
+    if (terminal is Token_Type and lookahead.type.value == terminal) or lookahead == terminal:  # ID NUM
+        lookahead = get_next_token(input_file)
+    else:
+        Syntax_Error("Fun-declaration-prime", errorType=Syntax_Error_Type.MISSING)  # not matched with declaration-list
+
+
+def checkError(currentState):
+    global lookahead
+    if lookahead.lexeme in follow_set[currentState] or lookahead.type.value in follow_set[currentState]:  # synch no epsilon
+        Syntax_Error(currentState,  errorType=Syntax_Error_Type.MISSING)
+        return False
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        return True
+
+
 def program():
     global lookahead, rootNode
     lookahead = get_next_token(input_file)
-    rootNode = Node("Program")
-    if lookahead.lexeme in first_set["Declaration-list"]:
+    if lookahead.lexeme in first("Declaration-list"):  # Program -> Declaration-list
         declaration_list()
-    else:
-        return Syntax_Error()
+    elif checkError("Program"):
+        program()
 
 
 def declaration_list():
     global lookahead
-    # Declaration-list -> Declaration Declaration-list
-    if lookahead.lexeme in first_set["Declaration Declaration-list"]:
-        # Declaration -> Declaration-initial Declaration-prime
-        # call Declaration-initial
-        declaration_initial()
-        # call Declaration-prime
-        if lookahead.lexeme in first_set["Fun-declaration-prime"]:  # Declaration-prime -> Fun_declaration_prime
-            # call Fun_declaration_prime
-            if lookahead.lexeme == "(":
-                Node(str(lookahead))
-                lookahead = get_next_token(input_file)
-            else:
-                Syntax_Error("(", errorType=Syntax_Error_Type.MISSING)
-            # call Params
-            if lookahead.lexeme == "int":  # Params -> int ID Param-prime Param-list
-                Node(str(lookahead))
-                lookahead = get_next_token(input_file)
 
-                if lookahead.lexeme == "int":
-                    Node(str(lookahead))
-                    lookahead = get_next_token(input_file)
-                else:
-                    Syntax_Error("int", errorType=Syntax_Error_Type.MISSING)
-
-                if lookahead.type.value == Token_Type.ID:
-                    Node(str(lookahead))
-                    lookahead = get_next_token(input_file)
-                else:
-                    Syntax_Error("", Token_Type.ID, errorType=Syntax_Error_Type.MISSING)
-
-                param_prime()
-                param_list()
-            elif lookahead.lexeme == "void":  # Params -> void
-                Node(str(lookahead))
-                lookahead = get_next_token(input_file)
-            else:
-                return Syntax_Error()
-            Node(str(lookahead))
-            lookahead = get_next_token(input_file)
-            compound_stmt()
-        elif lookahead.lexeme in first_set["Var-declaration-prime"]:  # Declaration-prime -> Var_declaration_prime
-            if lookahead.lexeme == ";":  # Var_declaration_prime -> ;
-                Node(str(lookahead))
-                match(Token_Type.SYMBOL, ';')
-            elif lookahead.lexeme == "[":  # Var_declaration_prime -> [ NUM ] ;
-                match(Token_Type.SYMBOL, '[')
-                match(Token_Type.NUM)
-                match(Token_Type.SYMBOL, ']')
-                match(Token_Type.SYMBOL, ';')
-            else:
-                return Syntax_Error()
-        else:
-            return Syntax_Error()
-        # call Declaration-list
+    if lookahead.lexeme in first("Declaration Declaration-list"):  # Declaration-list -> Declaration Declaration-list
+        declaration()
         declaration_list()
-    else:  # Declaration-list -> EPSILON
+    elif lookahead.lexeme in follow_set["Declaration-list"]:  # Declaration-list -> EPSILON
         return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        declaration_list()
+
+
+def declaration():
+    global lookahead
+    if lookahead.lexeme in first("Declaration-initial Declaration-prime"):  # Declaration -> Declaration-initial Declaration-prime
+        declaration_initial()
+        declaration_prime()
+    elif checkError("Declaration"):
+        declaration()
 
 
 def declaration_initial():
     global lookahead
-    # Declaration-initial -> Type-specifier ID
+    if lookahead.lexeme in first("Type-specifier"):  # Declaration-initial -> Type-specifier ID
+        type_specifier()
+        match(Token_Type.ID)
+    elif checkError("Declaration-initial"):
+        declaration_initial()
+
+
+def type_specifier():
+    global lookahead
     if lookahead.lexeme == "int":  # Type-specifier -> int
-        Node(str(lookahead))
-        match(Token_Type.KEYWORD, "int")
+        match("int")
     elif lookahead.lexeme == "void":  # Type-specifier -> void
-        match(Token_Type.KEYWORD, "void")
-    else:
-        return Syntax_Error()
-    match(Token_Type.ID)
+        match("void")
+    elif checkError("Type-specifier"):
+        type_specifier()
+
+
+def declaration_prime():
+    global lookahead
+    if lookahead.lexeme in first("Fun-declaration-prime"):  # Declaration-prime -> Fun-declaration-prime
+        fun_declaration_prime()
+    elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime
+        var_declaration_prime()
+    elif checkError("Declaration-prime"):
+        declaration_prime()
+
+
+def fun_declaration_prime():
+    global lookahead
+    # Fun-declaration-prime -> ( Params ) Compound-stmt
+    if lookahead.lexeme == "(":
+        match("(")
+        params()
+        match(")")
+        compound_stmt()
+    elif checkError("Fun-declaration-prime"):
+        fun_declaration_prime()
+
+
+def params():
+    global lookahead
+    if lookahead.lexeme == "int":  # Params -> int ID Param-prime Param-list
+        match("int")
+        match(Token_Type.ID)
+        param_prime()
+        param_list()
+    elif lookahead.lexeme == "void":  # Params -> void
+        match("void")
+    elif checkError("Params"):
+        params()
+
+
+def var_declaration_prime():
+    global lookahead
+    if lookahead.lexeme == ";":  # Var-declaration-prime -> ;
+        match(";")
+    elif lookahead.lexeme == "[":  # Var-declaration-prime -> [ NUM ] ;
+        match("[")
+        match(Token_Type.NUM)
+        match("]")
+        match(";")
+    elif checkError("Var-declaration-prime"):
+        var_declaration_prime()
 
 
 def param_list():
     global lookahead
     if lookahead.lexeme == ",":  # Param-list -> , Param Param-list
-        Node(str(lookahead))
-        match(Token_Type.SYMBOL, ",")
-        # call Param
-        declaration_initial()
-        param_prime()
-        # call Param-list
+        match(",")
+        params()
         param_list()
-    else:  # Param-list -> EPSILON
+    elif lookahead.lexeme in follow_set["Param-list"] or lookahead.type.value in follow_set["Param-list"]:  # Param-list -> EPSILON
         return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        param_list()
 
 
 def param_prime():
     global lookahead
     if lookahead.lexeme == "[":  # Param-prime -> [ ]
-        Node(str(lookahead))
-        match(Token_Type.SYMBOL, "[")
-        match(Token_Type.SYMBOL, "]")
-    else:  # Param-prime -> EPSILON
+        match("[")
+        match("]")
+    elif lookahead.lexeme in follow_set["Param-prime"] or lookahead.type.value in follow_set["Param-prime"]:  # Param-prime -> EPSILON
         return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        param_prime()
 
 
 def compound_stmt():
     global lookahead
     if lookahead.lexeme == "{":  # Compound-stmt -> { Declaration-list Statement-list }
-        Node(str(lookahead))
-        match(Token_Type.SYMBOL, "{")
+        match("{")
         declaration_list()
         statement_list()
-        match(Token_Type.SYMBOL, "}")
-    else:
-        return Syntax_Error()
+        match("}")
+    elif checkError("Compound-stmt"):
+        compound_stmt()
 
 
 def statement_list():
     global lookahead
-    if lookahead.lexeme in first_set["Statement"] or lookahead.type.value in first_set["Statement"]:  # Statement-list -> Statement Statement-list ????????????????
+    if lookahead.lexeme in first("Statement Statement-list") or lookahead.type.value in first("Statement Statement-list"):  # Statement-list -> Statement Statement-list
         statement()
         statement_list()
-    else:  # Statement-list -> EPSILON
+    elif lookahead.lexeme in follow_set["Statement-list"] or lookahead.type.value in follow_set["Statement-list"]:  # Statement-list -> EPSILON
         return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)  # not matched with declaration-list
+        lookahead = get_next_token(input_file)
+        statement_list()
+
+
+def expression_stmt():
+    global lookahead
+    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression"):  # Expression-stmt -> Expression ;
+        expression()
+        match(";")
+    elif lookahead.lexeme == "break":  # Expression-stmt -> break ;
+        match("break")
+        match(";")
+    elif lookahead.lexeme == ";":  # Expression-stmt -> ;
+        match(";")
+    elif checkError("Expression-stmt"):
+        expression_stmt()
+
+
+def selection_stmt():
+    global lookahead
+    # Selection-stmt -> if ( Expression ) Statement else Statement
+    if lookahead.lexeme == "if":
+        match("if")
+        match("(")
+        expression()
+        match(")")
+        statement()
+        match("else")
+        statement()
+    elif checkError("Selection-stmt"):
+        selection_stmt()
+
+
+def iteration_stmt():
+    global lookahead
+    # Iteration-stmt -> repeat Statement until ( Expression )
+    if lookahead.lexeme == "repeat":
+        match("repeat")
+        statement()
+        match("until")
+        match("(")
+        expression()
+        match(")")
+    elif checkError("Iteration-stmt"):
+        iteration_stmt()
+
+
+def return_stmt_prime():
+    global lookahead
+    # Return-stmt-prime -> ; | Expression ;
+    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression"):
+        expression()
+        match(";")
+    elif lookahead.lexeme == ";":
+        match(";")
+    elif checkError("Return-stmt-prime"):
+        return_stmt_prime()
+
+
+def return_stmt():
+    global lookahead
+    # Return-stmt -> return Return-stmt-prime
+    if lookahead.lexeme == "return":
+        match("return")
+        return_stmt_prime()
+    elif checkError("Return-stmt"):
+        return_stmt()
 
 
 def statement():
     global lookahead
-    if lookahead.lexeme in first_set["Expression-stmt"] or lookahead.type.value in first_set["Expression-stmt"]:  # Statement -> Expression_stmt
-        if lookahead.lexeme in first_set["Expression"] or lookahead.type.value in first_set["Expression"]:
-            expression()
-            match(Token_Type.SYMBOL, ";")
-        elif lookahead.lexeme == "break":
-            match(Token_Type.KEYWORD, "break")
-            match(Token_Type.SYMBOL, ";")
-        elif lookahead.lexeme == ";":
-            match(Token_Type.SYMBOL, ";")
-        else:
-            Syntax_Error()
-    elif lookahead.lexeme in first_set["Compound-stmt"] or lookahead.type.value in first_set["Compound-stmt"]:  # Statement -> Compound_stmt
+    if lookahead.lexeme in first("Expression-stmt") or lookahead.type.value in first("Expression-stmt"):  # Statement -> Expression_stmt
+        expression_stmt()
+    elif lookahead.lexeme in first("Compound-stmt") or lookahead.type.value in first("Compound-stmt"):  # Statement -> Compound_stmt
         compound_stmt()
-    elif lookahead.lexeme in first_set["Selection-stmt"] or lookahead.type.value in first_set["Selection-stmt"]:  # Statement -> Selection_stmt
-        match(Token_Type.KEYWORD, "if")
-        match(Token_Type.SYMBOL, "(")
-        expression()
-        match(Token_Type.SYMBOL, ")")
-        statement()
-        match(Token_Type.KEYWORD, "else")
-        statement()
-    elif lookahead.lexeme in first_set["Iteration-stmt"] or lookahead.type.value in first_set["Iteration-stmt"]:  # Statement -> Iteration_stmt
-        match(Token_Type.KEYWORD, "repeat")
-        statement()
-        match(Token_Type.KEYWORD, "until")
-        match(Token_Type.SYMBOL, "(")
-        expression()
-        match(Token_Type.SYMBOL, ")")
-    elif lookahead.lexeme in first_set["Return-stmt"] or lookahead.type.value in first_set["Return-stmt"]:  # Statement -> Return_stmt
-        match(Token_Type.KEYWORD, "return")
-        if lookahead.lexeme in first_set["Expression"] or lookahead.type.value in first_set["Expression"]:
-            expression()
-            match(Token_Type.SYMBOL, ";")
-        elif lookahead.lexeme == ";":
-            match(Token_Type.SYMBOL, ";")
-        else:
-            Syntax_Error()
+    elif lookahead.lexeme in first("Selection-stmt") or lookahead.type.value in first("Selection-stmt"):  # Statement -> Selection_stmt
+        selection_stmt()
+    elif lookahead.lexeme in first("Iteration-stmt") or lookahead.type.value in first("Iteration-stmt"):  # Statement -> Iteration_stmt
+        iteration_stmt()
+    elif lookahead.lexeme in first("Return-stmt") or lookahead.type.value in first("Return-stmt"):  # Statement -> Return_stmt
+        return_stmt()
+    elif lookahead.lexeme in follow_set["Statement"] or lookahead.type.value in follow_set["Statement"]:
+        Syntax_Error("Statement", errorType=Syntax_Error_Type.MISSING)
     else:
-        Syntax_Error()
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        statement()
+
+
+def simple_expression_zegond():
+    global lookahead
+    # Simple-expression-zegond -> Additive-expression-zegond C
+    if lookahead.lexeme in first("Additive-expression-zegond C") or lookahead.type.value in first("Additive-expression-zegond C"):
+        additive_expression_zegond()
+        c()
+    elif lookahead.lexeme in follow_set["Simple-expression-zegond"] or lookahead.type.value in follow_set["Simple-expression-zegond"]:
+        Syntax_Error("Simple-expression-zegond", errorType=Syntax_Error_Type.MISSING)
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        simple_expression_zegond()
+
+
+def additive_expression_zegond():
+    global lookahead
+    # Additive-expression-zegond -> Term-zegond D
+    if lookahead.lexeme in first("Term-zegond D") or lookahead.type.value in first("Term-zegond D"):
+        term_zegond()
+        d()
+    elif lookahead.lexeme in follow_set["Additive-expression-zegond"] or lookahead.type.value in follow_set["Additive-expression-zegond"]:
+        Syntax_Error("Additive-expression-zegond", errorType=Syntax_Error_Type.MISSING)
+        # no node
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        additive_expression_zegond()
 
 
 def expression():
     global lookahead
-    if lookahead.lexeme in first_set["Simple-expression-zegond"] or lookahead.type.value in first_set["Simple-expression-zegond"]:  # Expression -> Simple_expression_zegond
-        # Simple_expression_zegond -> Additive-expression-zegond C
-        # Additive-expression-zegond -> Term-zegond D
-        # Term-zegond -> Factor-zegond G
-        # call Term-zegond
-        if lookahead == "(":  # Factor-zegond -> ( Expression )
-            Node(str(lookahead))
-            match(Token_Type.SYMBOL, "(")
-            expression()
-            match(Token_Type.SYMBOL, ")")
-        elif lookahead.type is Token_Type.NUM:  # Factor-zegond -> NUM
-            match(Token_Type.NUM)
-        else:
-            Syntax_Error()
-        g()
-        # call Additive-expression-zegond
-        d()
-        # call Simple-expression-zegond
-        c()
-    elif lookahead.type is Token_Type.ID:  # Expression -> ID B
+    # Expression -> Simple-expression-zegond | ID B
+    if lookahead.lexeme in first("Simple-expression-zegond") or lookahead.type.value in first("Simple-expression-zegond"):  # Expression -> Simple_expression_zegond
+        simple_expression_zegond()
+    elif lookahead.type.value == Token_Type.ID:
         match(Token_Type.ID)
-        # call B
-        if lookahead.lexeme == "=":  # B -> = Expression
-            Node(str(lookahead))
-            match(Token_Type.SYMBOL, "=")
-            expression()
-        elif lookahead.lexeme == "[":  # B -> [ Expression ] H
-            match(Token_Type.SYMBOL, "[")
-            expression()
-            match(Token_Type.SYMBOL, "]")
-            if lookahead.lexeme == "=":  # H -> = Expression
-                Node(str(lookahead))
-                match(Token_Type.SYMBOL, "=")
-                expression()
-            elif lookahead.lexeme in first_set["G"] or lookahead.type.value in first_set["G"]:  # H -> G D C
-                g()
-                d()
-                c()
-            else:
-                Syntax_Error()
-        elif lookahead.lexeme in first_set["Simple-expression-prime"] or lookahead.type.value in first_set["Simple-expression-prime"]:  # B -> Simple_expression_prime
-            if lookahead.lexeme == "(":
-                Node(str(lookahead))
-                match(Token_Type.SYMBOL, "(")
-                args()
-                match(Token_Type.SYMBOL, ")")
-            else:
-                return
-            g()
-            d()
-            c()
-        else:
-            Syntax_Error()
+        b()
+    elif lookahead.lexeme in follow_set["Expression"] or lookahead.type.value in follow_set["Expression"]:
+        Syntax_Error("Expression", errorType=Syntax_Error_Type.MISSING)
     else:
-        Syntax_Error()
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        expression()
+
+
+def relop():
+    global lookahead
+    if lookahead.lexeme == "<":  # Relop -> <
+        match("<")
+    elif lookahead.lexeme == "==":  # Relop -> ==
+        match("==")
+    elif lookahead.lexeme in follow_set["Relop"] or lookahead.type.value in follow_set["Relop"]:
+        Syntax_Error("Relop", errorType=Syntax_Error_Type.MISSING)
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        relop()
 
 
 def c():
     global lookahead
-    if lookahead.lexeme in first_set["Relop"] or lookahead.type.value in first_set["Relop"]:  # C -> Relop Additive-expression
-        if lookahead.lexeme == "<":  # Relop -> <
-            Node(str(lookahead))
-            match(Token_Type.SYMBOL, "<")
-        elif lookahead.lexeme == "==":  # Relop -> ==
-            match(Token_Type.SYMBOL, "==")
-        else:
-            Syntax_Error()
-        # Additive-expression -> Term D
-        factor()
-        g()
-        d()
-    else:  # C -> EPSILON
+    # C -> Relop Additive-expression | EPSILON
+    if lookahead.lexeme in first("Relop Additive-expression") or lookahead.type.value in first("Relop Additive-expression"):  # C -> Relop Additive-expression
+        relop()
+        additive-expression()
+    elif lookahead.lexeme in follow_set["C"] or lookahead.type.value in follow_set["C"]:  # C -> EPSILON
         return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        c()
+
+
+def addop():
+    global lookahead
+    # Addop -> + | -
+    if lookahead.lexeme == "+":
+        match("+")
+    elif lookahead.lexeme == "-":
+        match("-")
+    elif lookahead.lexeme in follow_set["Addop"] or lookahead.type.value in follow_set["Addop"]:
+        Syntax_Error("Addop", errorType=Syntax_Error_Type.MISSING)
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        addop()
 
 
 def d():
     global lookahead
-    if lookahead.lexeme in first_set["Addop"] or lookahead.type.value in first_set["Addop"]:  # D -> Addop Term D
-        if lookahead.lexeme == "+":  # Addop -> +
-            Node(str(lookahead))
-            match(Token_Type.SYMBOL, "+")
-        elif lookahead.lexeme == "-":  # Addop -> -
-            match(Token_Type.SYMBOL, "-")
-        else:
-            Syntax_Error()
-        # call Term
+    # D -> Addop Term D | EPSILON
+    if lookahead.lexeme in first("Addop Term D") or lookahead.type.value in first("Addop Term D"):  # D -> Addop Term D
+        addop()
+        term()
+        d()
+    elif lookahead.lexeme in follow_set["D"] or lookahead.type.value in follow_set["D"]:  # D -> EPSILON
+        return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        d()
+
+
+def term():
+    global lookahead
+    # Term -> Factor G
+    if lookahead.lexeme in first("Factor G") or lookahead.type.value in first("Factor G"):
         factor()
         g()
-        # call D
-        d()
-    else:  # D -> EPSILON
-        return
+    elif lookahead.lexeme in follow_set["Term"] or lookahead.type.value in follow_set["Term"]:
+        Syntax_Error("Term", errorType=Syntax_Error_Type.MISSING)
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        term()
 
 
 def g():
     global lookahead
     if lookahead.lexeme == "*":  # G -> * Factor G
-        Node(str(lookahead))
-        match(Token_Type.SYMBOL, "*")
+        match("*")
         factor()
         g()
-    else:  # G -> EPSILON
+    elif lookahead.lexeme in follow_set["G"] or lookahead.type.value in follow_set["G"]:  # G -> EPSILON
         return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        g()
+
+
+def var_call_prime():
+    global lookahead
+    if lookahead.lexeme == "(":  # Var-call-prime -> ( Args )
+        match("(")
+        args()
+        match(")")
+    elif lookahead.lexeme in first("Var-prime") or lookahead.type.value in first("Var-prime"):  # Var-call-prime -> Var-prime
+        var_prime()
+    elif lookahead.lexeme in follow_set["Var-call-prime"] or lookahead.type.value in follow_set["Var-call-prime"]:
+        Syntax_Error("Var-call-prime", errorType=Syntax_Error_Type.MISSING)
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        var_call_prime()
 
 
 def factor():
     global lookahead
+    # Factor -> ( Expression ) | ID Var-call-prime | NUM
     if lookahead.lexeme == "(":  # Factor -> ( Expression )
-        Node(str(lookahead))
-        match(Token_Type.SYMBOL, "(")
+        match("(")
         expression()
-        match(Token_Type.SYMBOL, ")")
-    elif lookahead is Token_Type.ID:  # Factor -> ID Var-call-prime
+        match(")")
+    elif lookahead.type.value == Token_Type.ID:  # Factor -> ID Var-call-prime
         match(Token_Type.ID)
-        # call Var-call-prime
-        if lookahead.lexeme == "(":  # Var-call-prime -> ( Args )
-            Node(str(lookahead))
-            match(Token_Type.SYMBOL, "(")
-            args()
-            match(Token_Type.SYMBOL, ")")
-        elif lookahead.lexeme in first_set["Var-prime"] or lookahead.type.value in first_set["Var-prime"]:  # Var-call-prime -> Var-prime
-            # call Var-prime
-            if lookahead.lexeme == "[":  # Var-prime -> [ Expression ]
-                Node(str(lookahead))
-                match(Token_Type.SYMBOL, "[")
-                expression()
-                match(Token_Type.SYMBOL, "]")
-            else:  # Var-prime -> EPSILON
-                return
-        else:
-            Syntax_Error()
-    elif lookahead.type is Token_Type.NUM:  # Factor -> NUM
+        var_call_prime()
+    elif lookahead.type.value is Token_Type.NUM:  # Factor -> NUM
         match(Token_Type.NUM)
+    elif lookahead.lexeme in follow_set["Factor"] or lookahead.type.value in follow_set["Factor"]:
+        Syntax_Error("Factor", errorType=Syntax_Error_Type.MISSING)
     else:
-        Syntax_Error()
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        factor()
+
+
+def arg_list():
+    global lookahead
+    # Arg-list -> Expression Arg-list-prime
+    if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime"):
+        expression()
+        arg_list_prime()
+    elif lookahead.lexeme in follow_set["Arg-list"] or lookahead.type.value in follow_set["Arg-list"]:
+        Syntax_Error("Arg-list", errorType=Syntax_Error_Type.MISSING)
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        arg_list()
 
 
 def args():
     global lookahead
-    if lookahead.lexeme in first_set["Arg-list"] or lookahead.type.value in first_set["Arg-list"]:  # Args -> Arg-list
-        # Arg-list -> Expression Arg-list-prime
-        expression()
-        arg_list_prime()
-    else:  # Args -> EPSILON
+    # Args -> Arg-list | EPSILON
+    if lookahead.lexeme in first("Arg-list") or lookahead.type.value in first("Arg-list"):  # Args -> Arg-list
+        arg_list()
+    elif lookahead.lexeme in follow_set["Args"] or lookahead.type.value in follow_set["Args"]:  # Args -> EPSILON
         return
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        args()
 
 
 def arg_list_prime():
     global lookahead
     if lookahead.lexeme == ",":  # Arg-list-prime -> , Expression Arg-list-prime
-        Node(str(lookahead))
-        match(Token_Type.SYMBOL, ",")
+        match(",")
         expression()
         arg_list_prime()
-    else:  # Arg-list-prime -> EPSILON
+    elif lookahead.lexeme in follow_set["Arg-list-prime"] or lookahead.type.value in follow_set["Arg-list-prime"]:  # Arg-list-prime -> EPSILON
         return
-
-
-def isNonTerminal(symbol):
-    return symbol in grammar.keys()
+    else:
+        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        arg_list_prime()
 
 
 class Syntax_Error_Type(Enum):
     MISSING = "missing"
     ILLEGAL = "illegal"
     UNEXPECTED_EOF = "Unexpected EOF"
+
+
+class Token_Type(Enum):
+    NUM = "NUM"
+    ID = "ID"
+    KEYWORD = "KEYWORD"
+    SYMBOL = "SYMBOL"
+    COMMENT = "COMMENT"
+    WHITESPACE = "WHITESPACE"
 
 
 class Syntax_Error:
@@ -752,15 +985,6 @@ def write_parse_tree():
     for pre, fill, node in RenderTree(rootNode):
         file.write("%s%s" % (pre, node.name))
     file.close()
-
-
-class Token_Type(Enum):
-    NUM = "NUM"
-    ID = "ID"
-    KEYWORD = "KEYWORD"
-    SYMBOL = "SYMBOL"
-    COMMENT = "COMMENT"
-    WHITESPACE = "WHITESPACE"
 
 
 class ERROR_Type(Enum):
