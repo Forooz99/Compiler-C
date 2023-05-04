@@ -186,10 +186,15 @@ def match(terminal):
     else:
         Syntax_Error(Syntax_Error_Type.MISSING)  # terminal missing
 
-
-def checkError(currentState):
-    global lookahead, rootNode
-    if lookahead.lexeme in follow_set[currentState] or lookahead.type.value in follow_set[currentState]:  # synch no epsilon
+def checkEpsilonAndError(currentState):
+    global lookahead
+    if "EPSILON" in first(currentState):
+        if lookahead.lexeme in follow_set[currentState] or lookahead.type.value in follow_set[currentState]:  # currentState -> EPSILON
+            Node("epsilon")
+            print("check error and epsilon, epsilon", lookahead)
+            return False
+    elif lookahead.lexeme in follow_set[currentState] or lookahead.type.value in follow_set[currentState]:  # synch no epsilon
+        print("[[[[[[[[[[[[[[[[[[[[[[[[[[[")
         print("check error missing", lookahead)
         Syntax_Error(Syntax_Error_Type.MISSING, currentState)
         return False
@@ -204,26 +209,13 @@ def checkError(currentState):
         return True
 
 
-def checkEpsilonAndError(currentState):
-    global lookahead
-    if lookahead.lexeme in follow_set[currentState] or lookahead.type.value in follow_set[currentState]:  # currentState -> EPSILON
-        Node("epsilon")
-        print("check error and epsilon, epsilon", lookahead)
-        return False
-    else:
-        print("check error and epsilon, illegal", lookahead)
-        Syntax_Error(Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
-        return True
-
-
 def program():
     global lookahead, rootNode
     lookahead = get_next_token(input_file)
     if lookahead.lexeme in first("Declaration-list"):  # Program -> Declaration-list
         print("Program " + str(lookahead))
         declaration_list()
-    elif checkError("Program"):
+    elif checkEpsilonAndError("Program"):
         program()
 
 
@@ -243,7 +235,7 @@ def declaration():
         print("declaration " + str(lookahead))
         declaration_initial()
         declaration_prime()
-    elif checkError("Declaration"):
+    elif checkEpsilonAndError("Declaration"):
         declaration()
 
 
@@ -253,7 +245,7 @@ def declaration_initial():
         print("declaration-initial " + str(lookahead))
         type_specifier()
         match(Token_Type.ID)
-    elif checkError("Declaration-initial"):
+    elif checkEpsilonAndError("Declaration-initial"):
         declaration_initial()
 
 
@@ -265,7 +257,7 @@ def type_specifier():
     elif lookahead.lexeme == "void":  # Type-specifier -> void
         print("Type-specifier " + str(lookahead))
         match("void")
-    elif checkError("Type-specifier"):
+    elif checkEpsilonAndError("Type-specifier"):
         type_specifier()
 
 
@@ -277,7 +269,7 @@ def declaration_prime():
     elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime
         print("Declaration-prime " + str(lookahead))
         var_declaration_prime()
-    elif checkError("Declaration-prime"):
+    elif checkEpsilonAndError("Declaration-prime"):
         declaration_prime()
 
 
@@ -289,7 +281,7 @@ def fun_declaration_prime():
         params()
         match(")")
         compound_stmt()
-    elif checkError("Fun-declaration-prime"):
+    elif checkEpsilonAndError("Fun-declaration-prime"):
         fun_declaration_prime()
 
 
@@ -304,7 +296,7 @@ def params():
     elif lookahead.lexeme == "void":  # Params -> void
         print("Params " + str(lookahead))
         match("void")
-    elif checkError("Params"):
+    elif checkEpsilonAndError("Params"):
         params()
 
 
@@ -319,7 +311,7 @@ def var_declaration_prime():
         match(Token_Type.NUM)
         match("]")
         match(";")
-    elif checkError("Var-declaration-prime"):
+    elif checkEpsilonAndError("Var-declaration-prime"):
         var_declaration_prime()
 
 
@@ -352,7 +344,7 @@ def compound_stmt():
         declaration_list()
         statement_list()
         match("}")
-    elif checkError("Compound-stmt"):
+    elif checkEpsilonAndError("Compound-stmt"):
         compound_stmt()
 
 
@@ -379,7 +371,7 @@ def expression_stmt():
     elif lookahead.lexeme == ";":  # Expression-stmt -> ;
         print("Expression-stmt " + str(lookahead))
         match(";")
-    elif checkError("Expression-stmt"):
+    elif checkEpsilonAndError("Expression-stmt"):
         expression_stmt()
 
 
@@ -394,7 +386,7 @@ def selection_stmt():
         statement()
         match("else")
         statement()
-    elif checkError("Selection-stmt"):
+    elif checkEpsilonAndError("Selection-stmt"):
         selection_stmt()
 
 
@@ -408,7 +400,7 @@ def iteration_stmt():
         match("(")
         expression()
         match(")")
-    elif checkError("Iteration-stmt"):
+    elif checkEpsilonAndError("Iteration-stmt"):
         iteration_stmt()
 
 
@@ -421,7 +413,7 @@ def return_stmt_prime():
     elif lookahead.lexeme == ";":  # Return-stmt-prime -> ;
         print("Return-stmt-prime " + str(lookahead))
         match(";")
-    elif checkError("Return-stmt-prime"):
+    elif checkEpsilonAndError("Return-stmt-prime"):
         return_stmt_prime()
 
 
@@ -431,7 +423,7 @@ def return_stmt():
         print("Return-stmt " + str(lookahead))
         match("return")
         return_stmt_prime()
-    elif checkError("Return-stmt"):
+    elif checkEpsilonAndError("Return-stmt"):
         return_stmt()
 
 
@@ -452,7 +444,7 @@ def statement():
     elif lookahead.lexeme in first("Return-stmt") or lookahead.type.value in first("Return-stmt"):  # Statement -> Return_stmt
         print("Statement " + str(lookahead))
         return_stmt()
-    elif checkError("Statement"):
+    elif checkEpsilonAndError("Statement"):
         statement()
 
 
@@ -462,7 +454,7 @@ def simple_expression_zegond():
         print("Simple-expression-zegond " + str(lookahead))
         additive_expression_zegond()
         c()
-    elif checkError("Simple-expression-zegond"):
+    elif checkEpsilonAndError("Simple-expression-zegond"):
         simple_expression_zegond()
 
 
@@ -472,7 +464,7 @@ def additive_expression_zegond():
         print("Additive-expression-zegond " + str(lookahead))
         term_zegond()
         d()
-    elif checkError("Additive-expression-zegond"):
+    elif checkEpsilonAndError("Additive-expression-zegond"):
         additive_expression_zegond()
 
 
@@ -485,7 +477,7 @@ def expression():
         print("Expression " + str(lookahead))
         match(Token_Type.ID)
         b()
-    elif checkError("Expression"):
+    elif checkEpsilonAndError("Expression"):
         expression()
 
 
@@ -497,7 +489,7 @@ def relop():
     elif lookahead.lexeme == "==":  # Relop -> ==
         print("Relop " + str(lookahead))
         match("==")
-    elif checkError("Relop"):
+    elif checkEpsilonAndError("Relop"):
         relop()
 
 
@@ -519,7 +511,7 @@ def addop():
     elif lookahead.lexeme == "-": # Addop -> -
         print("Addop " + str(lookahead))
         match("-")
-    elif checkError("Addop"):
+    elif checkEpsilonAndError("Addop"):
         addop()
 
 
@@ -540,7 +532,7 @@ def term():
         print("Term " + str(lookahead))
         factor()
         g()
-    elif checkError("Term"):
+    elif checkEpsilonAndError("Term"):
         term()
 
 
@@ -563,9 +555,10 @@ def var_call_prime():
         args()
         match(")")
     elif lookahead.lexeme in first("Var-prime") or lookahead.type.value in first("Var-prime"):  # Var-call-prime -> Var-prime
+        print("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
         print("Var-call-prime " + str(lookahead))
         var_prime()
-    elif checkError("Var-call-prime"):
+    elif checkEpsilonAndError("Var-call-prime"):
         var_call_prime()
 
 
@@ -580,10 +573,10 @@ def factor():
         print("Factor " + str(lookahead))
         match(Token_Type.ID)
         var_call_prime()
-    elif lookahead.type.value is Token_Type.NUM:  # Factor -> NUM
+    elif lookahead.type == Token_Type.NUM:  # Factor -> NUM
         print("Factor " + str(lookahead))
         match(Token_Type.NUM)
-    elif checkError("Factor"):
+    elif checkEpsilonAndError("Factor"):
         factor()
 
 
@@ -593,7 +586,7 @@ def arg_list():
         print("Arg-list " + str(lookahead))
         expression()
         arg_list_prime()
-    elif checkError("Arg-list"):
+    elif checkEpsilonAndError("Arg-list"):
         arg_list()
 
 
@@ -623,7 +616,7 @@ def term_zegond():
         print("Term-zegond " + str(lookahead))
         factor_zegond()
         g()
-    elif checkError("Term-zegond"):
+    elif checkEpsilonAndError("Term-zegond"):
         term_zegond()
 
 
@@ -637,7 +630,7 @@ def factor_zegond():
     elif lookahead.type == Token_Type.NUM:  # Factor-zegond -> NUM
         print("Factor-zegond " + str(lookahead))
         match(Token_Type.NUM)
-    elif checkError("Factor-zegond"):
+    elif checkEpsilonAndError("Factor-zegond"):
         factor_zegond()
 
 
@@ -656,7 +649,7 @@ def b():
     elif lookahead.lexeme in first("Simple-expression-prime") or lookahead.type.value in first("Simple-expression-prime"):  # B -> Simple-expression-prime
         print("B " + str(lookahead))
         simple_expression_prime()
-    elif checkError("B"):
+    elif checkEpsilonAndError("B"):
         b()
 
 
@@ -671,7 +664,7 @@ def h():
         g()
         d()
         c()
-    elif checkError("H"):
+    elif checkEpsilonAndError("H"):
         h()
 
 
@@ -681,7 +674,7 @@ def additive_expression():
         print("Additive-expression " + str(lookahead))
         term()
         d()
-    elif checkError("Additive-expression"):
+    elif checkEpsilonAndError("Additive-expression"):
         additive_expression()
 
 
@@ -702,7 +695,7 @@ def simple_expression_prime():
         print("simple_expression_prime " + str(lookahead))
         additive_expression_prime()
         c()
-    elif checkError("Simple-expression-prime"):
+    elif checkEpsilonAndError("Simple-expression-prime"):
         simple_expression_prime()
 
 
@@ -712,17 +705,21 @@ def additive_expression_prime():
         print("additive_expression_prime " + str(lookahead))
         term_prime()
         d()
-    elif checkError("Additive-expression-prime"):
+    elif checkEpsilonAndError("Additive-expression-prime"):
         additive_expression_prime()
 
 
 def term_prime():
     global lookahead
+    print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;")
+    print(first("Factor-prime G"))
     if lookahead.lexeme in first("Factor-prime G") or lookahead.type.value in first("Factor-prime G"):  # Term-prime -> Factor-prime G
+        print("///////////////////////////////////")
         print("Term-prime " + str(lookahead))
         factor_prime()
         g()
-    elif checkError("Term-prime"):
+    elif checkEpsilonAndError("Term-prime"):
+        print("...........................")
         term_prime()
 
 
@@ -775,8 +772,11 @@ class Syntax_Error:
 def write_syntax_error():
     file = open("syntax_errors.txt", "w")
     if len(syntax_error_list) != 0:
-        for error in syntax_error_list:
-            file.write(str(error))
+        for i in range(len(syntax_error_list)):
+            if i == len(syntax_error_list) - 1:
+                file.write(str(syntax_error_list[i]))
+            else:
+                file.write(str(syntax_error_list[i]) + "\n")
     else:
         file.write("There is no syntax error.")
     file.close()
