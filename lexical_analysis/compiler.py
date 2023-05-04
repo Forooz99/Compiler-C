@@ -1,5 +1,5 @@
 from enum import Enum
-# from anytree import Node, RenderTree
+from anytree import Node, RenderTree
 
 # Alireza Foroodniya 99105645, Foroozan Iraji 99105272
 digits = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
@@ -61,314 +61,65 @@ grammar = {
 }
 first__set = {}
 follow_set = {
-
     'Program': ['$'],
-
     'Declaration-list': ['$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
-
     'Declaration': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
-
     'Declaration-initial': ['(', ';', '[', ',', ')'],
-
     'Declaration-prime': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
-
     'Var-declaration-prime': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
-
     'Fun-declaration-prime': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}'],
-
     'Type-specifier': ['ID'],
-
     'Params': [')'],
-
     'Param-list': [')'],
-
     'Param': [',', ')'],
-
     'Param-prime': [',', ')'],
-
-    'Compound-stmt': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else',
-
-                      'until'],
-
+    'Compound-stmt': ['int', 'void', '$', '{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
     'Statement-list': ['}'],
-
     'Statement': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
-
     'Expression-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
-
     'Selection-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
-
     'Iteration-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
-
     'Return-stmt': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
-
     'Return-stmt-prime': ['{', 'break', ';', 'if', 'repeat', 'return', 'ID', '(', 'NUM', '}', 'else', 'until'],
-
     'Expression': [';', ')', ']', ','],
-
     'B': [';', ')', ']', ','],
-
     'H': [';', ')', ']', ','],
-
     'Simple-expression-zegond': [';', ')', ']', ','],
-
     'Simple-expression-prime': [';', ')', ']', ','],
-
     'C': [';', ')', ']', ','],
-
     'Relop': ['(', 'ID', 'NUM'],
-
     'Additive-expression': [';', ')', ']', ','],
-
     'Additive-expression-prime': ['<', '==', ';', ')', ']', ','],
-
     'Additive-expression-zegond': ['<', '==', ';', ')', ']', ','],
-
     'D': ['<', '==', ';', ')', ']', ','],
-
     'Addop': ['(', 'ID', 'NUM'],
-
     'Term': ['+', '-', ';', ')', '<', '==', ']', ','],
-
     'Term-prime': ['+', '-', '<', '==', ';', ')', ']', ','],
-
     'Term-zegond': ['+', '-', '<', '==', ';', ')', ']', ','],
-
     'G': ['+', '-', '<', '==', ';', ')', ']', ','],
-
     'Factor': ['*', '+', '-', ';', ')', '<', '==', ']', ','],
-
     'Var-call-prime': ['*', '+', '-', ';', ')', '<', '==', ']', ','],
-
     'Var-prime': ['*', '+', '-', ';', ')', '<', '==', ']', ','],
-
     'Factor-prime': ['*', '+', '-', '<', '==', ';', ')', ']', ','],
-
     'Factor-zegond': ['*', '+', '-', '<', '==', ';', ')', ']', ','],
-
     'Args': [')'],
-
     'Arg-list': [')'],
-
     'Arg-list-prime': [')']
-
-}
-
-parse_table = {
-    "Program": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Declaration-list": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Declaration": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Declaration-initial": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Declaration-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Var-declaration-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Fun-declaration-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Type-specifier": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Params": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Param-list": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Param": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Param-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Compound-stmt": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Statement-list": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Statement": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Expression-stmt": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Selection-stmt": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Iteration-stmt": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Return-stmt": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Return-stmt-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Expression": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "B": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "H": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Simple-expression-zegond": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Simple-expression-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "C": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Relop": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Additive-expression": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Additive-expression-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Additive-expression-zegond": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "D": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Addop": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Term": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Term-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Term-zegond": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "G": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Factor": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Var-call-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Var-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Factor-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Factor-zegond": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Args": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Arg-list": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    },
-    "Arg-list-prime": {
-        "ID": None, "NUM": None, "void": None, "int": None, "break": None, "if": None, "else": None, "repeat": None, "until": None, "return": None,
-        ")": None, "(": None, ";": None, "[": None, "]": None, ",": None, "$": None
-    }
 }
 syntax_error_list = []
-parserState = []
 
 
 def main():
-    global input_file, lookahead
+    global input_file
     # initialize keywords as first tokens & add to symbol_table
     for keyword in keywords:
         Token(keyword, Token_Type.KEYWORD, needToAddToTokenList=False)
 
     input_file = open("input.txt", "r")
-    # constructParsingTable()
     program()  # parse starts
-    # write_parse_tree()
-    # write_syntax_error()
+#    write_parse_tree()
+    write_syntax_error()
     input_file.close()
-
-    for i in syntax_error_list:
-        print(i)
-
-    
-    
-
-
-def constructParsingTable():
-    for nonTerminal in parse_table:
-        for RHS in grammar[nonTerminal]:
-            for terminal in parse_table[nonTerminal]:
-                if terminal in first_set[RHS] and RHS != ["EPSILON"]:
-                    parse_table[nonTerminal][terminal].append(RHS)
-            if "EPSILON" in first_set[RHS]:
-                for t in follow_set[RHS]:
-                    if not parse_table[nonTerminal][t]:
-                        parse_table[nonTerminal][t].append(RHS)  # list of some rules
-            for t in follow_set[RHS]:
-                if not parse_table[nonTerminal][t]:
-                    parse_table[nonTerminal][t].append("synch")
 
 
 def first(string):
@@ -395,7 +146,6 @@ def first(string):
                 rule_has_epsilon = False
                 go_next = False
                 for item in rule:
-
                     if new_rule:
                         new_rule = False
                         first_set = first_set | first(item)
@@ -403,8 +153,6 @@ def first(string):
                             go_next = True
                             first_set.remove("EPSILON")
                             rule_has_epsilon = True
-
-
                     elif "EPSILON" in first_set or go_next:
                         go_next = False
                         if "EPSILON" in first_set:
@@ -432,21 +180,39 @@ def isNonTerminal(nonTerminal):
 def match(terminal):
     global lookahead
     if (((terminal == Token_Type.ID) or (terminal == Token_Type.NUM)) and lookahead.type == terminal) or lookahead.lexeme == terminal:  # ID NUM
+        Node(str(lookahead))
+        print("match", lookahead)
         lookahead = get_next_token(input_file)
-        print(lookahead)
     else:
-        Syntax_Error("Fun-declaration-prime", errorType=Syntax_Error_Type.MISSING)  # not matched with declaration-list
-
-    
+        Syntax_Error(Syntax_Error_Type.MISSING)  # terminal missing
 
 
 def checkError(currentState):
-    global lookahead
+    global lookahead, rootNode
     if lookahead.lexeme in follow_set[currentState] or lookahead.type.value in follow_set[currentState]:  # synch no epsilon
-        Syntax_Error(currentState,  errorType=Syntax_Error_Type.MISSING)
+        print("check error missing", lookahead)
+        Syntax_Error(Syntax_Error_Type.MISSING, currentState)
         return False
     else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
+        if currentState == "Program":
+            rootNode = Node(currentState)
+        else:
+            Node(currentState)
+        print("check error illegal", lookahead)
+        Syntax_Error(Syntax_Error_Type.ILLEGAL)
+        lookahead = get_next_token(input_file)
+        return True
+
+
+def checkEpsilonAndError(currentState):
+    global lookahead
+    if lookahead.lexeme in follow_set[currentState] or lookahead.type.value in follow_set[currentState]:  # currentState -> EPSILON
+        Node("epsilon")
+        print("check error and epsilon, epsilon", lookahead)
+        return False
+    else:
+        print("check error and epsilon, illegal", lookahead)
+        Syntax_Error(Syntax_Error_Type.ILLEGAL)
         lookahead = get_next_token(input_file)
         return True
 
@@ -455,6 +221,7 @@ def program():
     global lookahead, rootNode
     lookahead = get_next_token(input_file)
     if lookahead.lexeme in first("Declaration-list"):  # Program -> Declaration-list
+        print("Program " + str(lookahead))
         declaration_list()
     elif checkError("Program"):
         program()
@@ -462,21 +229,18 @@ def program():
 
 def declaration_list():
     global lookahead
-
     if lookahead.lexeme in first("Declaration Declaration-list"):  # Declaration-list -> Declaration Declaration-list
+        print("Declaration-list " + str(lookahead))
         declaration()
         declaration_list()
-    elif lookahead.lexeme in follow_set["Declaration-list"]:  # Declaration-list -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("Declaration-list"):
         declaration_list()
 
 
 def declaration():
     global lookahead
     if lookahead.lexeme in first("Declaration-initial Declaration-prime"):  # Declaration -> Declaration-initial Declaration-prime
+        print("declaration " + str(lookahead))
         declaration_initial()
         declaration_prime()
     elif checkError("Declaration"):
@@ -486,6 +250,7 @@ def declaration():
 def declaration_initial():
     global lookahead
     if lookahead.lexeme in first("Type-specifier"):  # Declaration-initial -> Type-specifier ID
+        print("declaration-initial " + str(lookahead))
         type_specifier()
         match(Token_Type.ID)
     elif checkError("Declaration-initial"):
@@ -495,8 +260,10 @@ def declaration_initial():
 def type_specifier():
     global lookahead
     if lookahead.lexeme == "int":  # Type-specifier -> int
+        print("Type-specifier " + str(lookahead))
         match("int")
     elif lookahead.lexeme == "void":  # Type-specifier -> void
+        print("Type-specifier " + str(lookahead))
         match("void")
     elif checkError("Type-specifier"):
         type_specifier()
@@ -505,8 +272,10 @@ def type_specifier():
 def declaration_prime():
     global lookahead
     if lookahead.lexeme in first("Fun-declaration-prime"):  # Declaration-prime -> Fun-declaration-prime
+        print("Declaration-prime " + str(lookahead))
         fun_declaration_prime()
     elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime
+        print("Declaration-prime " + str(lookahead))
         var_declaration_prime()
     elif checkError("Declaration-prime"):
         declaration_prime()
@@ -514,8 +283,8 @@ def declaration_prime():
 
 def fun_declaration_prime():
     global lookahead
-    # Fun-declaration-prime -> ( Params ) Compound-stmt
-    if lookahead.lexeme == "(":
+    if lookahead.lexeme == "(":  # Fun-declaration-prime -> ( Params ) Compound-stmt
+        print("Fun-declaration-prime " + str(lookahead))
         match("(")
         params()
         match(")")
@@ -527,11 +296,13 @@ def fun_declaration_prime():
 def params():
     global lookahead
     if lookahead.lexeme == "int":  # Params -> int ID Param-prime Param-list
+        print("Params " + str(lookahead))
         match("int")
         match(Token_Type.ID)
         param_prime()
         param_list()
     elif lookahead.lexeme == "void":  # Params -> void
+        print("Params " + str(lookahead))
         match("void")
     elif checkError("Params"):
         params()
@@ -540,8 +311,10 @@ def params():
 def var_declaration_prime():
     global lookahead
     if lookahead.lexeme == ";":  # Var-declaration-prime -> ;
+        print("Var-declaration-prime " + str(lookahead))
         match(";")
     elif lookahead.lexeme == "[":  # Var-declaration-prime -> [ NUM ] ;
+        print("Var-declaration-prime " + str(lookahead))
         match("[")
         match(Token_Type.NUM)
         match("]")
@@ -553,33 +326,28 @@ def var_declaration_prime():
 def param_list():
     global lookahead
     if lookahead.lexeme == ",":  # Param-list -> , Param Param-list
+        print("Param-list " + str(lookahead))
         match(",")
         params()
         param_list()
-    elif lookahead.lexeme in follow_set["Param-list"] or lookahead.type.value in follow_set["Param-list"]:  # Param-list -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("Param-list"):
         param_list()
 
 
 def param_prime():
     global lookahead
     if lookahead.lexeme == "[":  # Param-prime -> [ ]
+        print("Param-prime " + str(lookahead))
         match("[")
         match("]")
-    elif lookahead.lexeme in follow_set["Param-prime"] or lookahead.type.value in follow_set["Param-prime"]:  # Param-prime -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("Param-prime"):
         param_prime()
 
 
 def compound_stmt():
     global lookahead
     if lookahead.lexeme == "{":  # Compound-stmt -> { Declaration-list Statement-list }
+        print("Compound-stmt " + str(lookahead))
         match("{")
         declaration_list()
         statement_list()
@@ -591,25 +359,25 @@ def compound_stmt():
 def statement_list():
     global lookahead
     if lookahead.lexeme in first("Statement Statement-list") or lookahead.type.value in first("Statement Statement-list"):  # Statement-list -> Statement Statement-list
+        print("Statement-list " + str(lookahead))
         statement()
         statement_list()
-    elif lookahead.lexeme in follow_set["Statement-list"] or lookahead.type.value in follow_set["Statement-list"]:  # Statement-list -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)  # not matched with declaration-list
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("Statement-list"):
         statement_list()
 
 
 def expression_stmt():
     global lookahead
     if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression"):  # Expression-stmt -> Expression ;
+        print("Expression-stmt " + str(lookahead))
         expression()
         match(";")
     elif lookahead.lexeme == "break":  # Expression-stmt -> break ;
+        print("Expression-stmt " + str(lookahead))
         match("break")
         match(";")
     elif lookahead.lexeme == ";":  # Expression-stmt -> ;
+        print("Expression-stmt " + str(lookahead))
         match(";")
     elif checkError("Expression-stmt"):
         expression_stmt()
@@ -617,8 +385,8 @@ def expression_stmt():
 
 def selection_stmt():
     global lookahead
-    # Selection-stmt -> if ( Expression ) Statement else Statement
-    if lookahead.lexeme == "if":
+    if lookahead.lexeme == "if":  # Selection-stmt -> if ( Expression ) Statement else Statement
+        print("Selection-stmt " + str(lookahead))
         match("if")
         match("(")
         expression()
@@ -632,8 +400,8 @@ def selection_stmt():
 
 def iteration_stmt():
     global lookahead
-    # Iteration-stmt -> repeat Statement until ( Expression )
-    if lookahead.lexeme == "repeat":
+    if lookahead.lexeme == "repeat":  # Iteration-stmt -> repeat Statement until ( Expression )
+        print("Iteration-stmt " + str(lookahead))
         match("repeat")
         statement()
         match("until")
@@ -646,11 +414,12 @@ def iteration_stmt():
 
 def return_stmt_prime():
     global lookahead
-    # Return-stmt-prime -> ; | Expression ;
-    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression"):
+    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression"):  # Return-stmt-prime -> Expression ;
+        print("Return-stmt-prime " + str(lookahead))
         expression()
         match(";")
-    elif lookahead.lexeme == ";":
+    elif lookahead.lexeme == ";":  # Return-stmt-prime -> ;
+        print("Return-stmt-prime " + str(lookahead))
         match(";")
     elif checkError("Return-stmt-prime"):
         return_stmt_prime()
@@ -658,8 +427,8 @@ def return_stmt_prime():
 
 def return_stmt():
     global lookahead
-    # Return-stmt -> return Return-stmt-prime
-    if lookahead.lexeme == "return":
+    if lookahead.lexeme == "return":  # Return-stmt -> return Return-stmt-prime
+        print("Return-stmt " + str(lookahead))
         match("return")
         return_stmt_prime()
     elif checkError("Return-stmt"):
@@ -669,336 +438,303 @@ def return_stmt():
 def statement():
     global lookahead
     if lookahead.lexeme in first("Expression-stmt") or lookahead.type.value in first("Expression-stmt"):  # Statement -> Expression_stmt
+        print("Statement " + str(lookahead))
         expression_stmt()
     elif lookahead.lexeme in first("Compound-stmt") or lookahead.type.value in first("Compound-stmt"):  # Statement -> Compound_stmt
+        print("Statement " + str(lookahead))
         compound_stmt()
     elif lookahead.lexeme in first("Selection-stmt") or lookahead.type.value in first("Selection-stmt"):  # Statement -> Selection_stmt
+        print("Statement " + str(lookahead))
         selection_stmt()
     elif lookahead.lexeme in first("Iteration-stmt") or lookahead.type.value in first("Iteration-stmt"):  # Statement -> Iteration_stmt
+        print("Statement " + str(lookahead))
         iteration_stmt()
     elif lookahead.lexeme in first("Return-stmt") or lookahead.type.value in first("Return-stmt"):  # Statement -> Return_stmt
+        print("Statement " + str(lookahead))
         return_stmt()
-    elif lookahead.lexeme in follow_set["Statement"] or lookahead.type.value in follow_set["Statement"]:
-        Syntax_Error("Statement", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Statement"):
         statement()
 
 
 def simple_expression_zegond():
     global lookahead
-    # Simple-expression-zegond -> Additive-expression-zegond C
-    if lookahead.lexeme in first("Additive-expression-zegond C") or lookahead.type.value in first("Additive-expression-zegond C"):
+    if lookahead.lexeme in first("Additive-expression-zegond C") or lookahead.type.value in first("Additive-expression-zegond C"):  # Simple-expression-zegond -> Additive-expression-zegond C
+        print("Simple-expression-zegond " + str(lookahead))
         additive_expression_zegond()
         c()
-    elif lookahead.lexeme in follow_set["Simple-expression-zegond"] or lookahead.type.value in follow_set["Simple-expression-zegond"]:
-        Syntax_Error("Simple-expression-zegond", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Simple-expression-zegond"):
         simple_expression_zegond()
 
 
 def additive_expression_zegond():
     global lookahead
-    # Additive-expression-zegond -> Term-zegond D
-    if lookahead.lexeme in first("Term-zegond D") or lookahead.type.value in first("Term-zegond D"):
+    if lookahead.lexeme in first("Term-zegond D") or lookahead.type.value in first("Term-zegond D"):  # Additive-expression-zegond -> Term-zegond D
+        print("Additive-expression-zegond " + str(lookahead))
         term_zegond()
         d()
-    elif lookahead.lexeme in follow_set["Additive-expression-zegond"] or lookahead.type.value in follow_set["Additive-expression-zegond"]:
-        Syntax_Error("Additive-expression-zegond", errorType=Syntax_Error_Type.MISSING)
-        # no node
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Additive-expression-zegond"):
         additive_expression_zegond()
 
 
 def expression():
     global lookahead
-    # Expression -> Simple-expression-zegond | ID B
     if lookahead.lexeme in first("Simple-expression-zegond") or lookahead.type.value in first("Simple-expression-zegond"):  # Expression -> Simple_expression_zegond
+        print("Expression " + str(lookahead))
         simple_expression_zegond()
-    elif lookahead.type.value == Token_Type.ID:
+    elif lookahead.type == Token_Type.ID:  # Expression -> ID B
+        print("Expression " + str(lookahead))
         match(Token_Type.ID)
         b()
-    elif lookahead.lexeme in follow_set["Expression"] or lookahead.type.value in follow_set["Expression"]:
-        Syntax_Error("Expression", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Expression"):
         expression()
 
 
 def relop():
     global lookahead
     if lookahead.lexeme == "<":  # Relop -> <
+        print("Relop " + str(lookahead))
         match("<")
     elif lookahead.lexeme == "==":  # Relop -> ==
+        print("Relop " + str(lookahead))
         match("==")
-    elif lookahead.lexeme in follow_set["Relop"] or lookahead.type.value in follow_set["Relop"]:
-        Syntax_Error("Relop", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Relop"):
         relop()
 
 
 def c():
     global lookahead
-    # C -> Relop Additive-expression | EPSILON
     if lookahead.lexeme in first("Relop Additive-expression") or lookahead.type.value in first("Relop Additive-expression"):  # C -> Relop Additive-expression
+        print("C " + str(lookahead))
         relop()
         additive_expression()
-    elif lookahead.lexeme in follow_set["C"] or lookahead.type.value in follow_set["C"]:  # C -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("C"):
         c()
 
 
 def addop():
     global lookahead
-    # Addop -> + | -
-    if lookahead.lexeme == "+":
+    if lookahead.lexeme == "+":  # Addop -> +
+        print("Addop " + str(lookahead))
         match("+")
-    elif lookahead.lexeme == "-":
+    elif lookahead.lexeme == "-": # Addop -> -
+        print("Addop " + str(lookahead))
         match("-")
-    elif lookahead.lexeme in follow_set["Addop"] or lookahead.type.value in follow_set["Addop"]:
-        Syntax_Error("Addop", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Addop"):
         addop()
 
 
 def d():
     global lookahead
-    # D -> Addop Term D | EPSILON
     if lookahead.lexeme in first("Addop Term D") or lookahead.type.value in first("Addop Term D"):  # D -> Addop Term D
+        print("D " + str(lookahead))
         addop()
         term()
         d()
-    elif lookahead.lexeme in follow_set["D"] or lookahead.type.value in follow_set["D"]:  # D -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("D"):
         d()
 
 
 def term():
     global lookahead
-    # Term -> Factor G
-    if lookahead.lexeme in first("Factor G") or lookahead.type.value in first("Factor G"):
+    if lookahead.lexeme in first("Factor G") or lookahead.type.value in first("Factor G"):  # Term -> Factor G
+        print("Term " + str(lookahead))
         factor()
         g()
-    elif lookahead.lexeme in follow_set["Term"] or lookahead.type.value in follow_set["Term"]:
-        Syntax_Error("Term", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Term"):
         term()
 
 
 def g():
     global lookahead
     if lookahead.lexeme == "*":  # G -> * Factor G
+        print("G " + str(lookahead))
         match("*")
         factor()
         g()
-    elif lookahead.lexeme in follow_set["G"] or lookahead.type.value in follow_set["G"]:  # G -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("G"):
         g()
 
 
 def var_call_prime():
     global lookahead
     if lookahead.lexeme == "(":  # Var-call-prime -> ( Args )
+        print("Var-call-prime " + str(lookahead))
         match("(")
         args()
         match(")")
     elif lookahead.lexeme in first("Var-prime") or lookahead.type.value in first("Var-prime"):  # Var-call-prime -> Var-prime
+        print("Var-call-prime " + str(lookahead))
         var_prime()
-    elif lookahead.lexeme in follow_set["Var-call-prime"] or lookahead.type.value in follow_set["Var-call-prime"]:
-        Syntax_Error("Var-call-prime", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Var-call-prime"):
         var_call_prime()
 
 
 def factor():
     global lookahead
-    # Factor -> ( Expression ) | ID Var-call-prime | NUM
     if lookahead.lexeme == "(":  # Factor -> ( Expression )
+        print("Factor " + str(lookahead))
         match("(")
         expression()
         match(")")
-    elif lookahead.type.value == Token_Type.ID:  # Factor -> ID Var-call-prime
+    elif lookahead.type == Token_Type.ID:  # Factor -> ID Var-call-prime
+        print("Factor " + str(lookahead))
         match(Token_Type.ID)
         var_call_prime()
     elif lookahead.type.value is Token_Type.NUM:  # Factor -> NUM
+        print("Factor " + str(lookahead))
         match(Token_Type.NUM)
-    elif lookahead.lexeme in follow_set["Factor"] or lookahead.type.value in follow_set["Factor"]:
-        Syntax_Error("Factor", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Factor"):
         factor()
 
 
 def arg_list():
     global lookahead
-    # Arg-list -> Expression Arg-list-prime
-    if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime"):
+    if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime"):  # Arg-list -> Expression Arg-list-prime
+        print("Arg-list " + str(lookahead))
         expression()
         arg_list_prime()
-    elif lookahead.lexeme in follow_set["Arg-list"] or lookahead.type.value in follow_set["Arg-list"]:
-        Syntax_Error("Arg-list", errorType=Syntax_Error_Type.MISSING)
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkError("Arg-list"):
         arg_list()
 
 
 def args():
     global lookahead
-    # Args -> Arg-list | EPSILON
     if lookahead.lexeme in first("Arg-list") or lookahead.type.value in first("Arg-list"):  # Args -> Arg-list
+        print("Args " + str(lookahead))
         arg_list()
-    elif lookahead.lexeme in follow_set["Args"] or lookahead.type.value in follow_set["Args"]:  # Args -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("Args"):
         args()
 
 
 def arg_list_prime():
     global lookahead
     if lookahead.lexeme == ",":  # Arg-list-prime -> , Expression Arg-list-prime
+        print("Arg-list-prime " + str(lookahead))
         match(",")
         expression()
         arg_list_prime()
-    elif lookahead.lexeme in follow_set["Arg-list-prime"] or lookahead.type.value in follow_set["Arg-list-prime"]:  # Arg-list-prime -> EPSILON
-        return
-    else:
-        Syntax_Error(errorType=Syntax_Error_Type.ILLEGAL)
-        lookahead = get_next_token(input_file)
+    elif checkEpsilonAndError("Arg-list-prime"):
         arg_list_prime()
 
 
-#by forood 
-
 def term_zegond():
     global lookahead
-    if lookahead.lexeme in first("Factor-zegond G") or lookahead.type.value in first("Factor-zegond G"):
+    if lookahead.lexeme in first("Factor-zegond G") or lookahead.type.value in first("Factor-zegond G"):  # Term-zegond -> Factor-zegond G
+        print("Term-zegond " + str(lookahead))
         factor_zegond()
         g()
-    else:
-        print("error must be handeld in term zegond")
+    elif checkError("Term-zegond"):
+        term_zegond()
 
 
 def factor_zegond():
-    if lookahead.lexeme == "(":
+    global lookahead
+    if lookahead.lexeme == "(":  # Factor-zegond -> ( Expression )
+        print("Factor-zegond " + str(lookahead))
         match("(")
         expression()
         match(")")
-
-    elif lookahead.type == Token_Type.ID:
-        match(Token_Type.ID)
-
-    else:
-        print("error must be handeld in factor zegond")
+    elif lookahead.type == Token_Type.NUM:  # Factor-zegond -> NUM
+        print("Factor-zegond " + str(lookahead))
+        match(Token_Type.NUM)
+    elif checkError("Factor-zegond"):
+        factor_zegond()
 
 
 def b():
-    if lookahead.lexeme == "=":
+    global lookahead
+    if lookahead.lexeme == "=":  # B -> = Expression
+        print("B " + str(lookahead))
         match("=")
         expression()
-    elif lookahead.lexeme == "[":
+    elif lookahead.lexeme == "[":  # B -> [ Expression ] H
+        print("B " + str(lookahead))
         match("[")
         expression()
         match("]")
         h()
-
-    if lookahead.lexeme in first("Simple-expression-prime") or lookahead.type.value in first("Simple-expression-prime"):
+    elif lookahead.lexeme in first("Simple-expression-prime") or lookahead.type.value in first("Simple-expression-prime"):  # B -> Simple-expression-prime
+        print("B " + str(lookahead))
         simple_expression_prime()
+    elif checkError("B"):
+        b()
+
 
 def h():
-    if lookahead.lexeme == "=":
+    global lookahead
+    if lookahead.lexeme == "=":  # H -> = Expression
+        print("H " + str(lookahead))
         match("=")
-    elif lookahead.lexeme in first("G D C") or lookahead.type.value in first("G D C"):
+        expression()
+    elif lookahead.lexeme in first("G D C") or lookahead.type.value in first("G D C"):  # H -> G D C
+        print("H " + str(lookahead))
         g()
         d()
         c()
+    elif checkError("H"):
+        h()
 
 
 def additive_expression():
-    if lookahead.lexeme in first("Term D") or lookahead.type.value in first("Term D"):
+    global lookahead
+    if lookahead.lexeme in first("Term D") or lookahead.type.value in first("Term D"):  # Additive-expression -> Term D
+        print("Additive-expression " + str(lookahead))
         term()
         d()
-    else:  
-        print("error must be handeld in additive_expression")  
+    elif checkError("Additive-expression"):
+        additive_expression()
+
 
 def var_prime():
-    if lookahead.lexeme == "[":
+    global lookahead
+    if lookahead.lexeme == "[":  # Var-prime -> [ Expression ]
+        print("Var-prime " + str(lookahead))
         match("[")
         expression()
         match("]")
-    else:
-        print("epsilon must be printed in tree")
-        return
-    
+    elif checkEpsilonAndError("Var-prime"):
+        var_prime()
+
+
 def simple_expression_prime():
-    if lookahead.lexeme in first("Additive-expression-prime C") or lookahead.type.value in first("Additive-expression-prime C"):
+    global lookahead
+    if lookahead.lexeme in first("Additive-expression-prime C") or lookahead.type.value in first("Additive-expression-prime C"):  # Simple-expression-prime -> Additive-expression-prime C
+        print("simple_expression_prime " + str(lookahead))
         additive_expression_prime()
         c()
-    else:
-        print("must be handeled")
+    elif checkError("Simple-expression-prime"):
+        simple_expression_prime()
+
 
 def additive_expression_prime():
-    if lookahead.lexeme in first("Term-prime D") or lookahead.type.value in first("Term-prime D"):
+    global lookahead
+    if lookahead.lexeme in first("Term-prime D") or lookahead.type.value in first("Term-prime D"):  # Additive-expression-prime -> Term-prime D
+        print("additive_expression_prime " + str(lookahead))
         term_prime()
         d()
+    elif checkError("Additive-expression-prime"):
+        additive_expression_prime()
 
-    else:
-        print("must be handeled")
 
 def term_prime():
-    if lookahead.lexeme in first("Factor-prime G") or lookahead.type.value in first("Factor-prime G"):
+    global lookahead
+    if lookahead.lexeme in first("Factor-prime G") or lookahead.type.value in first("Factor-prime G"):  # Term-prime -> Factor-prime G
+        print("Term-prime " + str(lookahead))
         factor_prime()
         g()
+    elif checkError("Term-prime"):
+        term_prime()
 
-    else:
-        print("must be handeled")
 
 def factor_prime():
-    if lookahead.lexeme == "(":
+    global lookahead
+    if lookahead.lexeme == "(":  # Factor-prime -> ( Args )
+        print("Factor-prime " + str(lookahead))
         match("(")
         args()
         match(")")
-    else:
-        print("epsilon to be handeled")
-        return
-    
-
-    
-
-    
-
-
-
-class Syntax_Error_Type(Enum):
-    MISSING = "missing"
-    ILLEGAL = "illegal"
-    UNEXPECTED_EOF = "Unexpected EOF"
+    elif checkEpsilonAndError("Factor-prime"):
+        factor_prime()
 
 
 class Token_Type(Enum):
@@ -1011,21 +747,29 @@ class Token_Type(Enum):
     FINAL = "FINAL"
 
 
+class Syntax_Error_Type(Enum):
+    MISSING = "missing"
+    ILLEGAL = "illegal"
+    UNEXPECTED_EOF = "Unexpected EOF"
+
+
 class Syntax_Error:
-    def __init__(self, lexeme = "", type=Token_Type.KEYWORD, errorType=Syntax_Error_Type.MISSING):
-        if lexeme == "":
-            self.text = " " + errorType.value + " " + type.value
-        else:
-            self.text = " " + errorType.value + " " + lexeme
+    def __init__(self, errorType, missingState=""):
+        global lookahead
         self.line = lookahead.line
-        self.errorType = errorType
-        # if parse_table[nonTerminal][lookahead] == "synch":
-        #
-        # else:
+        if errorType == Syntax_Error_Type.UNEXPECTED_EOF:
+            self.text = errorType.UNEXPECTED_EOF.value
+        elif missingState == "":
+            if lookahead.type == Token_Type.ID or lookahead.type == Token_Type.NUM:
+                self.text = errorType.value + " " + lookahead.type.value
+            else:
+                self.text = errorType.value + " " + lookahead.lexeme
+        else:  # state missing
+            self.text = errorType.value + " " + missingState
         syntax_error_list.append(self)
 
     def __str__(self):
-        return "#" + str(self.line) + " : syntax error, " + str(self.errorType)
+        return "#" + str(self.line) + " : syntax error, " + self.text
 
 
 def write_syntax_error():
@@ -1039,17 +783,11 @@ def write_syntax_error():
 
 
 def write_parse_tree():
+    global rootNode
     file = open("parse_tree.txt", "w")
     for pre, fill, node in RenderTree(rootNode):
         file.write("%s%s" % (pre, node.name))
     file.close()
-
-
-class ERROR_Type(Enum):
-    INVALID_INPUT = "Invalid input"
-    UNCLOSED_COMMENT = "Unclosed comment"
-    UNMATCHED_COMMENT = "Unmatched comment"
-    INVALID_NUMBER = "Invalid number"
 
 
 class Token:
@@ -1064,6 +802,13 @@ class Token:
 
     def __str__(self):
         return "(" + self.type.name + ", " + self.lexeme + ")"
+
+
+class ERROR_Type(Enum):
+    INVALID_INPUT = "Invalid input"
+    UNCLOSED_COMMENT = "Unclosed comment"
+    UNMATCHED_COMMENT = "Unmatched comment"
+    INVALID_NUMBER = "Invalid number"
 
 
 class Lexical_Error:
