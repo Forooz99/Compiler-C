@@ -127,6 +127,8 @@ def main():
     for pre, _, node in RenderTree(rootNode):
         print("%s%s" % (pre, node.name))
 
+    print("")
+
     for i in syntax_error_list:
         print(i)
 
