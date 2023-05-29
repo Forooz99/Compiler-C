@@ -8,6 +8,8 @@ keywords = {"break", "else", "if", "int", "repeat", "return", "until", "void"}
 symbol_table = []
 token_list = []
 error_list = []
+syntax_error_list = []
+three_code_address_list = []
 characterBuffer = None
 lineno = 1
 input_file = None
@@ -107,7 +109,120 @@ follow_set = {
     'Arg-list': [')'],
     'Arg-list-prime': [')']
 }
-syntax_error_list = []
+semantic_stack = []
+tempAddress = 500
+dataAddress = 0
+
+
+class ACTION(Enum):
+    ASSIGN = "ASSIGN"
+    ADD = "ADD"
+    MULT = "MULT"
+    SUB = "SUB"
+    EQ = "EQ"
+    LT = "LT"
+    JPF = "JPF"
+    JP = "JP"
+    PRINT = "PRINT"
+    INITIALIZE = "INITIALIZE"
+    MEMORY = "MEMORY"
+    PID = "PID"
+    MAINFUN = "MAINFUN"
+    OUTPUT = "OUTPUT"
+
+
+class ADDRESSING_MODE(Enum):
+    IMMEDIATE = '#'
+    INDIRECT = '@'
+    DIRECT = ''
+
+
+class ThreeCodeAddress:
+    def __init__(self, action=ACTION.ASSIGN, num1="", num2="", num3="", addr1=ADDRESSING_MODE.DIRECT, addr2=ADDRESSING_MODE.DIRECT, addr3=ADDRESSING_MODE.DIRECT):
+        self.action = action
+        self.num1 = num1
+        self.num2 = num2
+        self.num3 = num3
+        self.addr1 = addr1
+        self.addr2 = addr2
+        self.addr3 = addr3
+        three_code_address_list.append(self)
+
+    def __str__(self):
+        return "(" + self.action.value + ", " + str(self.addr1.value) + str(self.num1) + ", " + \
+            str(self.addr2.value) + str(self.num2) + ", " + str(self.addr3.value) + str(self.num3) + " )"
+
+
+def memory():
+    # (ASSIGN, #4, 0,   )
+    # (JP, 2,  ,   )
+    ThreeCodeAddress(ACTION.ASSIGN, "4", "0", addr1=ADDRESSING_MODE.IMMEDIATE)
+    ThreeCodeAddress(ACTION.JP, "2")
+
+
+def mainFun():
+    # (JP, 2,  ,   )
+    ThreeCodeAddress(ACTION.JP, "2")
+
+
+def initialize():
+    # (ASSIGN, #0, 508,   )
+    global tempAddress  # direct
+    ThreeCodeAddress(ACTION.ASSIGN, "0", tempAddress, addr1=ADDRESSING_MODE.IMMEDIATE)
+    semantic_stack.append(tempAddress)
+    tempAddress = tempAddress + 4  # 4 byte int
+    return 0
+
+
+def assign():
+    ThreeCodeAddress(ACTION.ASSIGN, )
+    return 0
+
+
+def output():
+    ThreeCodeAddress(ACTION.PRINT, semantic_stack.pop())
+
+
+def pid():
+    return 0
+
+
+def mult():
+    ThreeCodeAddress(ACTION.MULT, "#0", tempAddress)
+    return 0
+
+
+def add():
+    ThreeCodeAddress(ACTION.ADD, "#0", tempAddress)
+    return 0
+
+
+def sub():
+    ThreeCodeAddress(ACTION.SUB, "#0", tempAddress)
+    return 0
+
+
+def checkOutput():
+    return 0
+
+
+def code_gen(action):
+    if action == ACTION.PID:
+        pid()
+    elif action == ACTION.MULT:
+        mult()
+    elif action == ACTION.ADD:
+        add()
+    elif action == ACTION.ASSIGN:
+        assign()
+    elif action == ACTION.MAINFUN:
+        mainFun()
+    elif action == ACTION.INITIALIZE:
+        initialize()
+    elif action == ACTION.MEMORY:
+        memory()
+    elif action == ACTION.OUTPUT:
+        output()
 
 
 def main():
@@ -117,9 +232,9 @@ def main():
         Token(keyword, Token_Type.KEYWORD, needToAddToTokenList=False)
 
     input_file = open("input.txt", "r")
-    program()  # parse starts
+    program()
     write_parse_tree()
-    write_syntax_error()
+    write_three_code_address()
     input_file.close()
 
 
@@ -141,7 +256,7 @@ def first(string):
         return first_set
     else:
         terminal_has_epsilon = False
-        if isNonTerminal(string):
+        if string in grammar.keys():
             for rule in grammar[string]:
                 new_rule = True
                 rule_has_epsilon = False
@@ -174,13 +289,11 @@ def first(string):
         return first_set
 
 
-def isNonTerminal(nonTerminal):
-    return nonTerminal in grammar.keys()
-
-
 def match(terminal, parent):
     global lookahead, currentState
-    if (((terminal == Token_Type.ID) or (terminal == Token_Type.NUM)) and lookahead.type == terminal) or lookahead.lexeme == terminal:  # ID NUM
+    if terminal == "$":
+        Node("$", parent)
+    elif ((terminal == Token_Type.ID or terminal == Token_Type.NUM) and lookahead.type == terminal) or lookahead.lexeme == terminal:  # ID NUM
         if lookahead.lexeme == "$":
             if terminal != "$":
                 Syntax_Error(Syntax_Error_Type.UNEXPECTED_EOF)
@@ -190,149 +303,167 @@ def match(terminal, parent):
             Node(str(lookahead), parent)
             lookahead = get_next_token(input_file)
     else:
-        Syntax_Error(Syntax_Error_Type.MISSING, terminal)  # terminal missing
+        if terminal == Token_Type.ID or terminal == Token_Type.NUM:
+            missing = terminal.value
+        else:
+            missing = terminal
+        Syntax_Error(Syntax_Error_Type.MISSING, missing)  # terminal missing
 
 
-def checkEpsilonAndError(state, parent, haveEpsilon=False):
-    global lookahead, rootNode
-    if not haveEpsilon and lookahead.lexeme in follow_set[state] or lookahead.type.value in follow_set[state]:  # synch no epsilon
-        Syntax_Error(Syntax_Error_Type.MISSING, state)
-        return False
-    else:
+def checkError(state, haveEpsilon=False, parent=None, RHS=""):
+    global lookahead
+    if haveEpsilon:
+        node = Node(state, parent)
+        Node("epsilon", node)
+    elif lookahead.lexeme in follow_set[state] or lookahead.type.value in follow_set[state]:  # synch
+        if haveEpsilon:
+            node = Node(state, parent)
+            Node("epsilon", node)
+        else:
+            Syntax_Error(Syntax_Error_Type.MISSING, state)
+    else:  # empty cells in parse table
         Syntax_Error(Syntax_Error_Type.ILLEGAL)
         lookahead = get_next_token(input_file)
         return True
+    return False
 
 
 def program():
-    global lookahead, rootNode
+    global lookahead, rootNode, currentState
     lookahead = get_next_token(input_file)
-    if lookahead.lexeme in first("Declaration-list"):  # Program -> Declaration-list
-        rootNode = Node("Program")
+    if lookahead.lexeme in first("Declaration-list"):  # Program -> #memory Declaration-list
+        currentState = "Program"
+        rootNode = Node(currentState)
+        code_gen(ACTION.MEMORY)
         declaration_list(rootNode)
-        match("$", rootNode)
-    elif checkEpsilonAndError("Program", None):
+    elif "EPSILON" in first("Declaration-list") and (lookahead.lexeme in follow_set["Program"] or lookahead.type.value in follow_set["Program"]):
+        node = Node(state, parent)
+        Node("epsilon", rootNode)
+    elif checkError("Program"):
         program()
 
 
 def declaration_list(parent_node):
-    global lookahead
-    if lookahead.lexeme in first("Declaration Declaration-list") or ("EPSILON" not in grammar["Declaration-list"] and "EPSILON" in first("Declaration Declaration-list")):  # Declaration-list -> Declaration Declaration-list
-        node = Node("Declaration-list", parent_node)
+    global lookahead, currentState
+    if lookahead.lexeme in first("Declaration Declaration-list"):  # Declaration-list -> Declaration Declaration-list
+        currentState = "Declaration-list"
+        node = Node(currentState, parent_node)
         declaration(node)
         declaration_list(node)
-    elif lookahead.lexeme in follow_set["Declaration-list"] or lookahead.type.value in follow_set["Declaration-list"]:  # Declaration-list -> EPSILON
-        node = Node("Declaration-list", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Declaration-list", parent_node, True):
+    elif "EPSILON" in first("Declaration Declaration-list") and (lookahead.lexeme in follow_set["Declaration-list"] or lookahead.type.value in follow_set["Declaration-list"]):
+        Node("epsilon", rootNode)
+    elif checkError("Declaration-list", True, parent_node):
         declaration_list(parent_node)
 
 
 def declaration(parent_node):
-    global lookahead
-    if lookahead.lexeme in first("Declaration-initial Declaration-prime") or ("EPSILON" not in grammar["Declaration"] and "EPSILON" in first("Declaration Declaration-list")):  # Declaration -> Declaration-initial Declaration-prime
-        node = Node("Declaration",parent_node)
+    global lookahead, currentState
+    if lookahead.lexeme in first("Declaration-initial Declaration-prime"):  # Declaration -> Declaration-initial Declaration-prime
+        currentState = "Declaration"
+        node = Node(currentState, parent_node)
         declaration_initial(node)
         declaration_prime(node)
-    elif checkEpsilonAndError("Declaration", parent_node):
+    elif checkError("Declaration"):
         declaration(parent_node)
 
 
 def declaration_initial(parent_node):
-    global lookahead
-    if lookahead.lexeme in first("Type-specifier") or ("EPSILON" not in grammar["Declaration-initial"] and "EPSILON" in first("Type-specifier")):  # Declaration-initial -> Type-specifier ID
-        node = Node("Declaration-initial",parent_node)
+    global lookahead, currentState
+    if lookahead.lexeme in first("Type-specifier"):  # Declaration-initial -> Type-specifier ID
+        currentState = "Declaration-initial"
+        node = Node(currentState, parent_node)
         type_specifier(node)
         match(Token_Type.ID, node)
-    elif checkEpsilonAndError("Declaration-initial", parent_node):
-        declaration_initial(node)
+        code_gen(ACTION.INITIALIZE)
+    elif checkError("Declaration-initial"):
+        declaration_initial(parent_node)
 
 
 def type_specifier(parent_node):
-    global lookahead
+    global lookahead, currentState
     if lookahead.lexeme == "int":  # Type-specifier -> int
-        node = Node("Type-specifier",parent_node)
-        match("int",node)
+        currentState = "Type-specifier"
+        node = Node(currentState, parent_node)
+        match("int", node)
     elif lookahead.lexeme == "void":  # Type-specifier -> void
-        node = Node("Type-specifier",parent_node)
+        currentState = "Type-specifier"
+        node = Node(currentState, parent_node)
         match("void", node)
-    elif checkEpsilonAndError("Type-specifier", parent_node):
-        type_specifier(node)
+    elif checkError("Type-specifier"):
+        type_specifier(parent_node)
 
 
 def declaration_prime(parent_node):
-    global lookahead
-    node = None
-    if lookahead.lexeme in first("Fun-declaration-prime") or ("EPSILON" not in grammar["Declaration-prime"] and "EPSILON" in first("Fun-declaration-prime")):  # Declaration-prime -> Fun-declaration-prime
-        node = Node("Declaration-prime",parent_node)
+    global lookahead, currentState
+    if lookahead.lexeme in first("Fun-declaration-prime"):  # Declaration-prime -> Fun-declaration-prime
+        currentState = "Declaration-prime"
+        node = Node(currentState, parent_node)
         fun_declaration_prime(node)
-    elif lookahead.lexeme in first("Var-declaration-prime") or ("EPSILON" not in grammar["Declaration-prime"] and "EPSILON" in first("Var-declaration-prime")):  # Declaration-prime -> Var_declaration_prime
-        node = Node("Declaration-prime",parent_node)
+    elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime
+        currentState = "Declaration-prime"
+        node = Node(currentState, parent_node)
         var_declaration_prime(node)
-    elif checkEpsilonAndError("Declaration-prime", parent_node):
-        declaration_prime(node)
+    elif checkError("Declaration-prime"):
+        declaration_prime(parent_node)
 
 
 def fun_declaration_prime(parent_node):
-    global lookahead
-    node = None
-    # Fun-declaration-prime -> ( Params ) Compound-stmt
-    if lookahead.lexeme == "(":
-        node = Node("Fun-declaration-prime",parent_node)
+    global lookahead, currentState
+    if lookahead.lexeme == "(":  # Fun-declaration-prime -> ( Params ) Compound-stmt
+        currentState = "Fun-declaration-prime"
+        node = Node(currentState, parent_node)
         match("(", node)
         params(node)
         match(")", node)
         compound_stmt(node)
-    elif checkEpsilonAndError("Fun-declaration-prime", parent_node):
-        fun_declaration_prime(node)
+    elif checkError("Fun-declaration-prime"):
+        fun_declaration_prime(parent_node)
 
 
 def params(parent_node):
-    global lookahead
-    node = None
+    global lookahead, currentState
     if lookahead.lexeme == "int":  # Params -> int ID Param-prime Param-list
-        node = Node("Params", parent_node)
+        currentState = "Params"
+        node = Node(currentState, parent_node)
         match("int", node)
         match(Token_Type.ID, node)
         param_prime(node)
         param_list(node)
     elif lookahead.lexeme == "void":  # Params -> void
-        node = Node("Params", parent_node)
+        currentState = "Params"
+        node = Node(currentState, parent_node)
         match("void", node)
-    elif checkEpsilonAndError("Params", parent_node):
-        params(node)
+    elif checkError("Params"):
+        params(parent_node)
 
 
 def var_declaration_prime(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == ";":  # Var-declaration-prime -> ;
         currentState = "Var-declaration-prime"
-        node = Node("Var-declaration-prime", parent_node)
+        node = Node(currentState, parent_node)
         match(";", node)
     elif lookahead.lexeme == "[":  # Var-declaration-prime -> [ NUM ] ;
         currentState = "Var-declaration-prime"
-        node = Node("Var-declaration-prime", parent_node)
+        node = Node(currentState, parent_node)
         match("[", node)
         match(Token_Type.NUM, node)
         match("]", node)
         match(";", node)
-    elif checkEpsilonAndError("Var-declaration-prime", parent_node):
-        var_declaration_prime()
+    elif checkError("Var-declaration-prime"):
+        var_declaration_prime(parent_node)
 
 
 def param_list(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "," or ("EPSILON" not in grammar["Param-list"] and "EPSILON" in first("Param-list")):  # Param-list -> , Param Param-list
+    if lookahead.lexeme == ",":  # Param-list -> , Param Param-list
         currentState = "Param-list"
         node = Node(currentState, parent_node)
         match(",", node)
         params(node)
         param_list(node)
-    elif lookahead.lexeme in follow_set["Param-list"] or lookahead.type.value in follow_set["Param-list"]:  # Param-list -> EPSILON
-        node = Node("Param-list", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Param-list", parent_node, True):
-        param_list()
+    elif checkError("Param-list", True, parent_node):
+        param_list(parent_node)
 
 
 def param_prime(parent_node):
@@ -342,68 +473,57 @@ def param_prime(parent_node):
         node = Node(currentState, parent_node)
         match("[", node)
         match("]", node)
-    elif lookahead.lexeme in follow_set["Param-prime"] or lookahead.type.value in follow_set["Param-prime"]:  # Param-prime -> EPSILON
-        node = Node("Param-prime", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Param-prime", parent_node):
-        param_prime()
+    elif checkError("Param-prime", True, parent_node):
+        param_prime(parent_node)
 
 
 def compound_stmt(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "{":  # Compound-stmt -> { Declaration-list Statement-list }
         currentState = "Compound-stmt"
-        node = Node("Compound-stmt", parent_node)
+        node = Node(currentState, parent_node)
         match("{", node)
         declaration_list(node)
         statement_list(node)
         match("}", node)
-    elif checkEpsilonAndError("Compound-stmt", parent_node):
-        compound_stmt()
+    elif checkError("Compound-stmt"):
+        compound_stmt(parent_node)
 
 
 def statement_list(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Statement Statement-list") or lookahead.type.value in first("Statement Statement-list") or ("EPSILON" not in grammar["Statement-list"] and "EPSILON" in first("Statement Statement-list")):  # Statement-list -> Statement Statement-list
+    if lookahead.lexeme in first("Statement Statement-list") or lookahead.type.value in first("Statement Statement-list"):  # Statement-list -> Statement Statement-list
         currentState = "Statement-list"
-        node = Node("Statement-list", parent_node)
+        node = Node(currentState, parent_node)
         statement(node)
         statement_list(node)
-    elif lookahead.lexeme in follow_set["Statement-list"] or lookahead.type.value in follow_set["Statement-list"]:  # Statement-list -> EPSILON
-        node = Node("Statement-list", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Statement-list", parent_node):
-        statement_list()
+    elif checkError("Statement-list", True, parent_node):
+        statement_list(parent_node)
 
 
 def expression_stmt(parent_node):
     global lookahead, currentState
-    
-    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression") or ("EPSILON" not in grammar["Expression-stmt"] and "EPSILON" in first("Expression")):  # Expression-stmt -> Expression ;
-        #print("Expression-stmt " + str(lookahead))
+    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression"):  # Expression-stmt -> Expression ;
         currentState = "Expression-stmt"
-        node = Node("Expression-stmt",parent_node)
+        node = Node(currentState, parent_node)
         expression(node)
         match(";", node)
     elif lookahead.lexeme == "break":  # Expression-stmt -> break ;
-        #print("Expression-stmt " + str(lookahead))
         currentState = "Expression-stmt"
-        node = Node("Expression-stmt",parent_node)
+        node = Node(currentState, parent_node)
         match("break", node)
         match(";", node)
     elif lookahead.lexeme == ";":  # Expression-stmt -> ;
-        #print("Expression-stmt " + str(lookahead))
         currentState = "Expression-stmt"
-        node = Node("Expression-stmt",parent_node)
+        node = Node(currentState, parent_node)
         match(";", node)
-    elif checkEpsilonAndError("Expression-stmt", parent_node):
-        expression_stmt()
+    elif checkError("Expression-stmt"):
+        expression_stmt(parent_node)
 
 
 def selection_stmt(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "if":  # Selection-stmt -> if ( Expression ) Statement else Statement
-        #print("Selection-stmt " + str(lookahead))
         currentState = "Selection-stmt"
         node = Node(currentState, parent_node)
         match("if", node)
@@ -413,14 +533,13 @@ def selection_stmt(parent_node):
         statement(node)
         match("else", node)
         statement(node)
-    elif checkEpsilonAndError("Selection-stmt", parent_node):
-        selection_stmt()
+    elif checkError("Selection-stmt"):
+        selection_stmt(parent_node)
 
 
 def iteration_stmt(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "repeat":  # Iteration-stmt -> repeat Statement until ( Expression )
-        #print("Iteration-stmt " + str(lookahead))
         currentState = "Iteration-stmt"
         node = Node(currentState, parent_node)
         match("repeat", node)
@@ -429,115 +548,102 @@ def iteration_stmt(parent_node):
         match("(", node)
         expression(node)
         match(")", node)
-    elif checkEpsilonAndError("Iteration-stmt", parent_node):
-        iteration_stmt()
+    elif checkError("Iteration-stmt"):
+        iteration_stmt(parent_node)
 
 
 def return_stmt_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression") or ("EPSILON" not in grammar["Return-stmt-prime"] and "EPSILON" in first("Expression")):  # Return-stmt-prime -> Expression ;
-        #print("Return-stmt-prime " + str(lookahead))
+    if lookahead.lexeme in first("Expression") or lookahead.type.value in first("Expression"):  # Return-stmt-prime -> Expression ;
         currentState = "Return-stmt-prime"
         node = Node(currentState, parent_node)
         expression(node)
         match(";", node)
     elif lookahead.lexeme == ";":  # Return-stmt-prime -> ;
-        #print("Return-stmt-prime " + str(lookahead))
         currentState = "Return-stmt-prime"
         node = Node(currentState, parent_node)
         match(";", node)
-    elif checkEpsilonAndError("Return-stmt-prime", parent_node):
-        return_stmt_prime()
+    elif checkError("Return-stmt-prime"):
+        return_stmt_prime(parent_node)
 
 
 def return_stmt(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "return":  # Return-stmt -> return Return-stmt-prime
-        #print("Return-stmt " + str(lookahead))
         currentState = "Return-stmt"
         node = Node(currentState, parent_node)
         match("return", node)
         return_stmt_prime(node)
-    elif checkEpsilonAndError("Return-stmt", parent_node):
-        return_stmt()
+    elif checkError("Return-stmt"):
+        return_stmt(parent_node)
 
 
 def statement(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Expression-stmt") or lookahead.type.value in first("Expression-stmt") or ("EPSILON" not in grammar["Statement"] and "EPSILON" in first("Expression-stmt")):  # Statement -> Expression_stmt
-        #print("Statement " + str(lookahead))
+    if lookahead.lexeme in first("Expression-stmt") or lookahead.type.value in first("Expression-stmt"):  # Statement -> Expression_stmt
         currentState = "Statement"
-        node = Node("Statement",parent_node)
+        node = Node(currentState, parent_node)
         expression_stmt(node)
-    elif lookahead.lexeme in first("Compound-stmt") or lookahead.type.value in first("Compound-stmt")or ("EPSILON" not in grammar["Statement"] and "EPSILON" in first("Compound-stmt")):  # Statement -> Compound_stmt
-        #print("Statement " + str(lookahead))
+    elif lookahead.lexeme in first("Compound-stmt") or lookahead.type.value in first("Compound-stmt"):  # Statement -> Compound_stmt
         currentState = "Statement"
-        node = Node("Statement",parent_node)
+        node = Node(currentState, parent_node)
         compound_stmt(node)
-    elif lookahead.lexeme in first("Selection-stmt") or lookahead.type.value in first("Selection-stmt")or ("EPSILON" not in grammar["Statement"] and "EPSILON" in first("Selection-stmt")):  # Statement -> Selection_stmt
-        #print("Statement " + str(lookahead))
+    elif lookahead.lexeme in first("Selection-stmt") or lookahead.type.value in first("Selection-stmt"):  # Statement -> Selection_stmt
         currentState = "Statement"
-        node = Node("Statement",parent_node)
+        node = Node(currentState, parent_node)
         selection_stmt(node)
-    elif lookahead.lexeme in first("Iteration-stmt") or lookahead.type.value in first("Iteration-stmt")or ("EPSILON" not in grammar["Statement"] and "EPSILON" in first("Iteration-stmt")):  # Statement -> Iteration_stmt
-       # print("Statement " + str(lookahead))
+    elif lookahead.lexeme in first("Iteration-stmt") or lookahead.type.value in first("Iteration-stmt"):  # Statement -> Iteration_stmt
         currentState = "Statement"
-        node = Node("Statement",parent_node)
+        node = Node(currentState, parent_node)
         iteration_stmt(node)
-    elif lookahead.lexeme in first("Return-stmt") or lookahead.type.value in first("Return-stmt")or ("EPSILON" not in grammar["Statement"] and "EPSILON" in first("Return-stmt")):  # Statement -> Return_stmt
-        #print("Statement " + str(lookahead))
+    elif lookahead.lexeme in first("Return-stmt") or lookahead.type.value in first("Return-stmt"):  # Statement -> Return_stmt
         currentState = "Statement"
-        node = Node("Statement",parent_node)
+        node = Node(currentState, parent_node)
         return_stmt(node)
-    elif checkEpsilonAndError("Statement", parent_node):
-        statement()
+    elif checkError("Statement"):
+        statement(parent_node)
 
 
 def simple_expression_zegond(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Additive-expression-zegond C") or lookahead.type.value in first("Additive-expression-zegond C") or ("EPSILON" not in grammar["Simple-expression-zegond"] and "EPSILON" in first("Additive-expression-zegond C")):  # Simple-expression-zegond -> Additive-expression-zegond C
-        #print("Simple-expression-zegond " + str(lookahead))
+    if lookahead.lexeme in first("Additive-expression-zegond C") or lookahead.type.value in first("Additive-expression-zegond C"):  # Simple-expression-zegond -> Additive-expression-zegond C
         currentState = "Simple-expression-zegond"
         node = Node(currentState, parent_node)
         additive_expression_zegond(node)
         c(node)
-    elif checkEpsilonAndError("Simple-expression-zegond", parent_node):
-        simple_expression_zegond()
+    elif checkError("Simple-expression-zegond"):
+        simple_expression_zegond(parent_node)
 
 
 def additive_expression_zegond(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Term-zegond D") or lookahead.type.value in first("Term-zegond D") or ("EPSILON" not in grammar["Additive-expression-zegond"] and "EPSILON" in first("Term-zegond D")):  # Additive-expression-zegond -> Term-zegond D
-        #print("Additive-expression-zegond " + str(lookahead))
+    if lookahead.lexeme in first("Term-zegond D") or lookahead.type.value in first("Term-zegond D"):  # Additive-expression-zegond -> Term-zegond D
         currentState = "Additive-expression-zegond"
         node = Node(currentState, parent_node)
         term_zegond(node)
         d(node)
-    elif checkEpsilonAndError("Additive-expression-zegond", parent_node):
-        additive_expression_zegond()
+    elif checkError("Additive-expression-zegond"):
+        additive_expression_zegond(parent_node)
 
 
 def expression(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Simple-expression-zegond") or lookahead.type.value in first("Simple-expression-zegond")  or ("EPSILON" not in grammar["Expression"] and "EPSILON" in first("Simple-expression-zegond")):  # Expression -> Simple_expression_zegond
-        #print("Expression " + str(lookahead))
+    if lookahead.lexeme in first("Simple-expression-zegond") or lookahead.type.value in first("Simple-expression-zegond"):  # Expression -> Simple_expression_zegond
         currentState = "Expression"
-        node = Node("Expression",parent_node)
+        node = Node(currentState, parent_node)
         simple_expression_zegond(node)
     elif lookahead.type == Token_Type.ID:  # Expression -> ID B
-        #print("Expression " + str(lookahead))
         currentState = "Expression"
-        node = Node("Expression",parent_node)
+        node = Node(currentState, parent_node)
         match(Token_Type.ID, node)
         b(node)
-    elif checkEpsilonAndError("Expression", parent_node):
-        expression()
+    elif checkError("Expression"):
+        expression(parent_node)
 
 
 def relop(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "<":  # Relop -> <
-        #print("Relop " + str(lookahead))
         currentState = "Relop"
         node = Node(currentState, parent_node)
         match("<", node)
@@ -545,78 +651,68 @@ def relop(parent_node):
         currentState = "Relop"
         node = Node(currentState, parent_node)
         match("==", node)
-    elif checkEpsilonAndError("Relop", parent_node):
-        relop()
+    elif checkError("Relop"):
+        relop(parent_node)
 
 
 def c(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Relop Additive-expression") or lookahead.type.value in first("Relop Additive-expression") or ("EPSILON" not in grammar["C"] and "EPSILON" in first("Relop Additive-expression")):  # C -> Relop Additive-expression
+    if lookahead.lexeme in first("Relop Additive-expression") or lookahead.type.value in first("Relop Additive-expression"):  # C -> Relop Additive-expression
         currentState = "C"
         node = Node("C", parent_node)
         relop(node)
         additive_expression(node)
-    elif lookahead.lexeme in follow_set["C"] or lookahead.type.value in follow_set["C"]:  # C -> EPSILON
-        node = Node("C", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("C", parent_node):
-        c()
+    elif checkError("C", True, parent_node):
+        c(parent_node)
 
 
 def addop(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "+":  # Addop -> +
         currentState = "Addop"
-        node = Node("Addop", parent_node)
+        node = Node(currentState, parent_node)
         match("+", node)
     elif lookahead.lexeme == "-":  # Addop -> -
         currentState = "Addop"
-        node = Node("Addop", parent_node)
+        node = Node(currentState, parent_node)
         match("-", node)
-    elif checkEpsilonAndError("Addop", parent_node):
-        addop()
+    elif checkError("Addop"):
+        addop(parent_node)
 
 
 def d(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Addop Term D") or lookahead.type.value in first("Addop Term D")  or ("EPSILON" not in grammar["D"] and "EPSILON" in first("Addop Term D")):  # D -> Addop Term D
+    if lookahead.lexeme in first("Addop Term D") or lookahead.type.value in first("Addop Term D"):  # D -> Addop Term D
         currentState = "D"
-        node = Node("D", parent_node)
+        node = Node(currentState, parent_node)
         addop(node)
         term(node)
         d(node)
-    elif lookahead.lexeme in follow_set["D"] or lookahead.type.value in follow_set["D"]:  # D -> EPSILON
-        node = Node("D", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("D", parent_node):
-        d()
+    elif checkError("D", True, parent_node):
+        d(parent_node)
 
 
 def term(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Factor G") or lookahead.type.value in first("Factor G") or ("EPSILON" not in grammar["Term"] and "EPSILON" in first("Factor G")):  # Term -> Factor G
+    if lookahead.lexeme in first("Factor G") or lookahead.type.value in first("Factor G"):  # Term -> Factor G
         currentState = "Term"
-        node = Node("Term", parent_node)
+        node = Node(currentState, parent_node)
         factor(node)
         g(node)
-    elif checkEpsilonAndError("Term", parent_node):
-        term()
+    elif checkError("Term"):
+        term(parent_node)
 
 
 def g(parent_node):
     global lookahead, currentState
-    node = None
     if lookahead.lexeme == "*":  # G -> * Factor G
         currentState = "G"
-        node = Node("G", parent_node)
+        node = Node(currentState, parent_node)
         match("*", node)
         factor(node)
         g(node)
-    elif lookahead.lexeme in follow_set["G"] or lookahead.type.value in follow_set["G"]:  # G -> EPSILON
-        node = Node("G", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("G", parent_node):
-        g(None)
+    elif checkError("G", True, parent_node):
+        g(parent_node)
 
 
 def var_call_prime(parent_node):
@@ -627,58 +723,54 @@ def var_call_prime(parent_node):
         match("(", node)
         args(node)
         match(")", node)
-    elif lookahead.lexeme in first("Var-prime") or lookahead.type.value in first("Var-prime") or ("EPSILON" not in grammar["Var-call-prime"] and "EPSILON" in first("Var-prime")):  # Var-call-prime -> Var-prime
+    elif lookahead.lexeme in first("Var-prime") or lookahead.type.value in first("Var-prime"):  # Var-call-prime -> Var-prime
         currentState = "Var-call-prime"
         node = Node(currentState, parent_node)
         var_prime(node)
-    elif checkEpsilonAndError("Var-call-prime", parent_node):
-        var_call_prime()
+    elif checkError("Var-call-prime"):
+        var_call_prime(parent_node)
 
 
 def factor(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "(":  # Factor -> ( Expression )
         currentState = "Factor"
-        node = Node("Factor", parent_node)
+        node = Node(currentState, parent_node)
         match("(", node)
         expression(node)
         match(")", node)
     elif lookahead.type == Token_Type.ID:  # Factor -> ID Var-call-prime
         currentState = "Factor"
-        node = Node("Factor", parent_node)
+        node = Node(currentState, parent_node)
         match(Token_Type.ID, node)
         var_call_prime(node)
     elif lookahead.type == Token_Type.NUM:  # Factor -> NUM
         currentState = "Factor"
-        node = Node("Factor", parent_node)
+        node = Node(currentState, parent_node)
         match(Token_Type.NUM, node)
-    elif checkEpsilonAndError("Factor", parent_node):
-        factor()
+    elif checkError("Factor"):
+        factor(parent_node)
 
 
 def arg_list(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime") or ("EPSILON" not in grammar["Arg-list"] and "EPSILON" in first("Expression Arg-list-prime")):  # Arg-list -> Expression Arg-list-prime
-        #print("Arg-list " + str(lookahead))
+    if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime"):  # Arg-list -> Expression Arg-list-prime
         currentState = "Arg-list"
         node = Node(currentState, parent_node)
         expression(node)
         arg_list_prime(node)
-    elif checkEpsilonAndError("Arg-list", parent_node):
-        arg_list()
+    elif checkError("Arg-list"):
+        arg_list(parent_node)
 
 
 def args(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Arg-list") or lookahead.type.value in first("Arg-list") or ("EPSILON" not in grammar["Args"] and "EPSILON" in first("Arg-list")):  # Args -> Arg-list
+    if lookahead.lexeme in first("Arg-list") or lookahead.type.value in first("Arg-list"):  # Args -> Arg-list
         currentState = "Args"
         node = Node(currentState, parent_node)
         arg_list(node)
-    elif lookahead.lexeme in follow_set["Args"] or lookahead.type.value in follow_set["Args"]:  # Args -> EPSILON
-        node = Node("Args", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Args", parent_node):
-        args()
+    elif checkError("Args", True, parent_node):
+        args(parent_node)
 
 
 def arg_list_prime(parent_node):
@@ -689,95 +781,85 @@ def arg_list_prime(parent_node):
         match(",", node)
         expression(node)
         arg_list_prime(node)
-    elif lookahead.lexeme in follow_set["Arg-list-prime"] or lookahead.type.value in follow_set["Arg-list-prime"]:  # Arg-list-prime -> EPSILON
-        node = Node("Arg-list-prime", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Arg-list-prime", parent_node):
-        arg_list_prime(None)
+    elif checkError("Arg-list-prime", True, parent_node):
+        arg_list_prime(parent_node)
 
 
 def term_zegond(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Factor-zegond G") or lookahead.type.value in first("Factor-zegond G") or ("EPSILON" not in grammar["Term-zegond"] and "EPSILON" in first("Factor-zegond G")):  # Term-zegond -> Factor-zegond G
+    if lookahead.lexeme in first("Factor-zegond G") or lookahead.type.value in first("Factor-zegond G"):  # Term-zegond -> Factor-zegond G
         currentState = "Term-zegond"
         node = Node(currentState, parent_node)
         factor_zegond(node)
         g(node)
-    elif checkEpsilonAndError("Term-zegond", parent_node):
-        term_zegond()
+    elif checkError("Term-zegond"):
+        term_zegond(parent_node)
 
 
 def factor_zegond(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "(":  # Factor-zegond -> ( Expression )
-        #print("Factor-zegond " + str(lookahead))
         currentState = "Factor-zegond"
         node = Node(currentState, parent_node)
         match("(", node)
         expression(node)
         match(")", node)
     elif lookahead.type == Token_Type.NUM:  # Factor-zegond -> NUM
-        #print("Factor-zegond " + str(lookahead))
         currentState = "Factor-zegond"
         node = Node(currentState, parent_node)
         match(Token_Type.NUM, node)
-    elif checkEpsilonAndError("Factor-zegond", parent_node):
-        factor_zegond()
+    elif checkError("Factor-zegond"):
+        factor_zegond(parent_node)
 
 
 def b(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "=":  # B -> = Expression
-        #print("B " + str(lookahead))
         currentState = "B"
-        node = Node("B",parent_node)
+        node = Node(currentState, parent_node)
         match("=", node)
         expression(node)
     elif lookahead.lexeme == "[":  # B -> [ Expression ] H
-        #print("B " + str(lookahead))
         currentState = "B"
-        node = Node("B",parent_node)
+        node = Node(currentState, parent_node)
         match("[", node)
         expression(node)
         match("]", node)
         h(node)
-    elif lookahead.lexeme in first("Simple-expression-prime") or lookahead.type.value in first("Simple-expression-prime")  or ("EPSILON" not in grammar["B"] and "EPSILON" in first("Simple-expression-prime")):  # B -> Simple-expression-prime
-        #print("B " + str(lookahead))
+    elif lookahead.lexeme in first("Simple-expression-prime") or lookahead.type.value in first("Simple-expression-prime"):  # B -> Simple-expression-prime
         currentState = "B"
-        node = Node("B",parent_node)
+        node = Node(currentState, parent_node)
         simple_expression_prime(node)
-    elif checkEpsilonAndError("B", parent_node):
-        b()
+    elif checkError("B"):
+        b(parent_node)
 
 
 def h(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "=":  # H -> = Expression
-        #print("H " + str(lookahead))
         currentState = "H"
         node = Node(currentState, parent_node)
         match("=", node)
         expression(node)
-    elif lookahead.lexeme in first("G D C") or lookahead.type.value in first("G D C")  or ("EPSILON" not in grammar["H"] and "EPSILON" in first("G D C")):  # H -> G D C
-        #print("H " + str(lookahead))
+    elif lookahead.lexeme in first("G D C") or lookahead.type.value in first("G D C"):  # H -> G D C
         currentState = "H"
         node = Node(currentState, parent_node)
         g(node)
         d(node)
         c(node)
-    elif checkEpsilonAndError("H", parent_node):
-        h()
+    elif checkError("H"):
+        h(parent_node)
 
 
 def additive_expression(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Term D") or lookahead.type.value in first("Term D")  or ("EPSILON" not in grammar["Additive-expression"] and "EPSILON" in first("Term D")):  # Additive-expression -> Term D
+    if lookahead.lexeme in first("Term D") or lookahead.type.value in first("Term D"):  # Additive-expression -> Term D
         currentState = "Additive-expression"
         node = Node(currentState, parent_node)
         term(node)
         d(node)
-    elif checkEpsilonAndError("Additive-expression", parent_node):
-        additive_expression()
+    elif checkError("Additive-expression"):
+        additive_expression(parent_node)
 
 
 def var_prime(parent_node):
@@ -788,60 +870,54 @@ def var_prime(parent_node):
         match("[", node)
         expression(node)
         match("]", node)
-    elif lookahead.lexeme in follow_set["Var-prime"] or lookahead.type.value in follow_set["Var-prime"]:  # Var-prime -> EPSILON
-        node = Node("Var-prime", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Var-prime", parent_node):
-        var_prime()
+    elif checkError("Var-prime", True, parent_node):
+        var_prime(parent_node)
 
 
 def simple_expression_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Additive-expression-prime C") or lookahead.type.value in first("Additive-expression-prime C")  or ("EPSILON" not in grammar["Simple-expression-prime"] and "EPSILON" in first("Additive-expression-prime C")):  # Simple-expression-prime -> Additive-expression-prime C
-        #print("simple_expression_prime " + str(lookahead))
+    if lookahead.lexeme in first("Additive-expression-prime C") or lookahead.type.value in first("Additive-expression-prime C"):  # Simple-expression-prime -> Additive-expression-prime C
         currentState = "Simple-expression-prime"
-        node = Node("Simple-expression-prime",parent_node)
+        node = Node(currentState, parent_node)
         additive_expression_prime(node)
         c(node)
-    elif checkEpsilonAndError("Simple-expression-prime", parent_node):
-        simple_expression_prime()
+    elif checkError("Simple-expression-prime"):
+        simple_expression_prime(parent_node)
 
 
 def additive_expression_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Term-prime D") or lookahead.type.value in first("Term-prime D")  or ("EPSILON" not in grammar["Additive-expression-prime"] and "EPSILON" in first("Term-prime D")):  # Additive-expression-prime -> Term-prime D
+    if lookahead.lexeme in first("Term-prime D") or lookahead.type.value in first("Term-prime D"):  # Additive-expression-prime -> Term-prime D
         currentState = "Additive-expression-prime"
-        node = Node("Additive-expression-prime",parent_node)
+        node = Node(currentState, parent_node)
         term_prime(node)
         d(node)
-    elif checkEpsilonAndError("Additive-expression-prime", parent_node):
-        additive_expression_prime()
+    elif checkError("Additive-expression-prime"):
+        additive_expression_prime(parent_node)
 
 
 def term_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Factor-prime G") or lookahead.type.value in first("Factor-prime G")  or ("EPSILON" not in grammar["Term-prime"] and "EPSILON" in first("Factor-prime G")):  # Term-prime -> Factor-prime G
+    if lookahead.lexeme in first("Factor-prime G") or lookahead.type.value in first("Factor-prime G"):  # Term-prime -> Factor-prime G
         currentState = "Term-prime"
-        node = Node("Term-prime",parent_node)
+        node = Node(currentState, parent_node)
         factor_prime(node)
         g(node)
-    elif checkEpsilonAndError("Term-prime", parent_node):
-        term_prime()
+    elif checkError("Term-prime"):
+        term_prime(parent_node)
 
 
 def factor_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "(":  # Factor-prime -> ( Args )
+    if lookahead.lexeme == "(":  # Factor-prime -> ( Args #output )
         currentState = "Factor-prime"
-        node = Node("Factor-prime", parent_node)
+        node = Node(currentState, parent_node)
         match("(", node)
         args(node)
         match(")", node)
-    elif lookahead.lexeme in follow_set["Factor-prime"] or lookahead.type.value in follow_set["Factor-prime"]:  # Factor-prime -> EPSILON
-        node = Node("Factor-prime", parent_node)
-        Node("epsilon", node)
-    elif checkEpsilonAndError("Factor-prime", parent_node):
-        factor_prime(node)
+        code_gen(ACTION.OUTPUT)
+    elif checkError("Factor-prime", True, parent_node):
+        factor_prime(parent_node)
 
 
 class Token_Type(Enum):
@@ -877,28 +953,6 @@ class Syntax_Error:
 
     def __str__(self):
         return "#" + str(self.line) + " : syntax error, " + self.text
-
-
-def write_syntax_error():
-    file = open("syntax_errors.txt", "w")
-    if len(syntax_error_list) != 0:
-        for i in range(len(syntax_error_list)):
-            if i == len(syntax_error_list) - 1:
-                file.write(str(syntax_error_list[i]))
-            else:
-                file.write(str(syntax_error_list[i]) + "\n")
-    else:
-        file.write("There is no syntax error.")
-    file.close()
-
-
-def write_parse_tree():
-    global rootNode
-    
-    file = open("parse_tree.txt", "w", encoding="utf-8")
-    for pre, _, node in RenderTree(rootNode):
-        file.write (("%s%s" % (pre, node.name)) + "\n")
-    file.close()
 
 
 class Token:
@@ -1163,6 +1217,39 @@ def symbol_writer():
         string = str(i) + ".\t" + symbol + "\n"
         file.write(string)
         i += 1
+    file.close()
+
+
+def write_syntax_error():
+    file = open("syntax_errors.txt", "w")
+    if len(syntax_error_list) != 0:
+        for i in range(len(syntax_error_list)):
+            if i == len(syntax_error_list) - 1:
+                file.write(str(syntax_error_list[i]))
+            else:
+                file.write(str(syntax_error_list[i]) + "\n")
+    else:
+        file.write("There is no syntax error.")
+    file.close()
+
+
+def write_parse_tree():
+    global rootNode
+
+    file = open("parse_tree.txt", "w", encoding="utf-8")
+    for pre, _, node in RenderTree(rootNode):
+        file.write(("%s%s" % (pre, node.name)) + "\n")
+    file.close()
+
+
+def write_three_code_address():
+    global three_code_address_list
+    file = open("output.txt", "w")
+    if len(three_code_address_list) != 0:
+        for i in range(len(three_code_address_list)):
+            file.write(str(i) + "\t" + str(three_code_address_list[i]) + "\n")
+    else:
+        file.write("")
     file.close()
 
 
