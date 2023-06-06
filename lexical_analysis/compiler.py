@@ -10,6 +10,7 @@ token_list = []
 error_list = []
 syntax_error_list = []
 three_code_address_list = []
+symbol_HashTable = {}
 characterBuffer = None
 lineno = 1
 input_file = None
@@ -112,6 +113,7 @@ follow_set = {
 semantic_stack = []
 tempAddress = 500
 dataAddress = 0
+ss = {}
 
 
 class ACTION(Enum):
@@ -129,6 +131,7 @@ class ACTION(Enum):
     PID = "PID"
     MAINFUN = "MAINFUN"
     OUTPUT = "OUTPUT"
+    LESSTHAN = "LESSTHAN"
 
 
 class ADDRESSING_MODE(Enum):
@@ -153,10 +156,19 @@ class ThreeCodeAddress:
             str(self.addr2.value) + str(self.num2) + ", " + str(self.addr3.value) + str(self.num3) + " )"
 
 
+def getTemp():
+    global tempAddress
+    x = tempAddress
+    tempAddress += 4
+    return x
+
+
 def memory():
     # (ASSIGN, #4, 0,   )
     # (JP, 2,  ,   )
+    getTemp()
     ThreeCodeAddress(ACTION.ASSIGN, "4", "0", addr1=ADDRESSING_MODE.IMMEDIATE)
+    getTemp()
     ThreeCodeAddress(ACTION.JP, "2")
 
 
@@ -167,10 +179,11 @@ def mainFun():
 
 def initialize():
     # (ASSIGN, #0, 508,   )
-    global tempAddress  # direct
-    ThreeCodeAddress(ACTION.ASSIGN, "0", tempAddress, addr1=ADDRESSING_MODE.IMMEDIATE)
-    semantic_stack.append(tempAddress)
-    tempAddress = tempAddress + 4  # 4 byte int
+    t = getTemp()
+
+    ThreeCodeAddress(ACTION.ASSIGN, "0", t, addr1=ADDRESSING_MODE.IMMEDIATE)
+
+# semantic_stack.append(tempAddress)
     return 0
 
 
@@ -180,29 +193,36 @@ def assign():
 
 
 def output():
-    ThreeCodeAddress(ACTION.PRINT, semantic_stack.pop())
+    ThreeCodeAddress(ACTION.PRINT, "0")
 
 
 def pid():
+
     return 0
 
 
 def mult():
-    ThreeCodeAddress(ACTION.MULT, "#0", tempAddress)
+    ThreeCodeAddress(ACTION.MULT, "#0", getTemp())
     return 0
 
 
 def add():
-    ThreeCodeAddress(ACTION.ADD, "#0", tempAddress)
+    ThreeCodeAddress(ACTION.ADD, "#0", getTemp())
     return 0
 
 
 def sub():
-    ThreeCodeAddress(ACTION.SUB, "#0", tempAddress)
+    ThreeCodeAddress(ACTION.SUB, "#0", getTemp())
     return 0
 
 
 def checkOutput():
+    return 0
+
+
+def lessThan():
+    # (LT, 520, 524, 528 )
+   # ThreeCodeAddress(ACTION.LT, getTemp(), semantic_stack.pop(), semantic_stack.pop())
     return 0
 
 
@@ -223,6 +243,8 @@ def code_gen(action):
         memory()
     elif action == ACTION.OUTPUT:
         output()
+    elif action == ACTION.LESSTHAN:
+        lessThan()
 
 
 def main():
@@ -233,6 +255,9 @@ def main():
 
     input_file = open("input.txt", "r")
     program()
+    symbol_writer()
+    print(symbol_HashTable["a"])
+    print(symbol_HashTable["b"])
     write_parse_tree()
     write_three_code_address()
     input_file.close()
@@ -301,6 +326,8 @@ def match(terminal, parent):
                 Node("$", parent)
         else:
             Node(str(lookahead), parent)
+            if terminal == Token_Type.ID and lookahead.get_Address() is None:
+                lookahead.set_Address(getTemp())
             lookahead = get_next_token(input_file)
     else:
         if terminal == Token_Type.ID or terminal == Token_Type.NUM:
@@ -310,7 +337,7 @@ def match(terminal, parent):
         Syntax_Error(Syntax_Error_Type.MISSING, missing)  # terminal missing
 
 
-def checkError(state, haveEpsilon=False, parent=None, RHS=""):
+def checkError(state, haveEpsilon=False, parent=None):
     global lookahead
     if haveEpsilon:
         node = Node(state, parent)
@@ -643,10 +670,11 @@ def expression(parent_node):
 
 def relop(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "<":  # Relop -> <
+    if lookahead.lexeme == "<":  # Relop -> < #lessThan
         currentState = "Relop"
         node = Node(currentState, parent_node)
         match("<", node)
+        code_gen(ACTION.LESSTHAN)
     elif lookahead.lexeme == "==":  # Relop -> ==
         currentState = "Relop"
         node = Node(currentState, parent_node)
@@ -668,14 +696,16 @@ def c(parent_node):
 
 def addop(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "+":  # Addop -> +
+    if lookahead.lexeme == "+":  # Addop -> + #add
         currentState = "Addop"
         node = Node(currentState, parent_node)
         match("+", node)
-    elif lookahead.lexeme == "-":  # Addop -> -
+        code_gen(ACTION.ADD)
+    elif lookahead.lexeme == "-":  # Addop -> - #sub
         currentState = "Addop"
         node = Node(currentState, parent_node)
         match("-", node)
+        code_gen(ACTION.SUB)
     elif checkError("Addop"):
         addop(parent_node)
 
@@ -957,13 +987,21 @@ class Syntax_Error:
 
 class Token:
     def __init__(self, lexeme="", type=Token_Type.ID, line=0, needToAddToTokenList=True):
+        self._address = None
         self.lexeme = lexeme
         self.type = type
         self.line = line
         if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
-            symbol_table.append(lexeme)
+            symbol_table.append(self)
+            symbol_HashTable[lexeme] = self
         if needToAddToTokenList and self not in token_list:
             token_list.append(self)
+
+    def set_Address(self, address):
+        self._address = address
+
+    def get_Address(self):
+        return self._address
 
     def __str__(self):
         return "(" + self.type.name + ", " + self.lexeme + ")"
@@ -1212,11 +1250,8 @@ def file_writer(content, file_name):
 
 def symbol_writer():
     file = open("symbol_table.txt", "w")
-    i = 1
-    for symbol in symbol_table:
-        string = str(i) + ".\t" + symbol + "\n"
-        file.write(string)
-        i += 1
+    for i in range(len(symbol_table)):
+        file.write(str(i + 1) + ".\t" + symbol_table[i].lexeme + "\n")
     file.close()
 
 
