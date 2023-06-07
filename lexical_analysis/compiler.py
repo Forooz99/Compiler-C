@@ -114,6 +114,8 @@ semantic_stack = []
 tempAddress = 500
 dataAddress = 0
 ss = {}
+currentID = None
+pb_pointer = 0
 
 
 class ACTION(Enum):
@@ -129,9 +131,9 @@ class ACTION(Enum):
     INITIALIZE = "INITIALIZE"
     MEMORY = "MEMORY"
     PID = "PID"
-    MAINFUN = "MAINFUN"
     OUTPUT = "OUTPUT"
     LESSTHAN = "LESSTHAN"
+    PUSHARG = "PUSHARG"
 
 
 class ADDRESSING_MODE(Enum):
@@ -142,6 +144,7 @@ class ADDRESSING_MODE(Enum):
 
 class ThreeCodeAddress:
     def __init__(self, action=ACTION.ASSIGN, num1="", num2="", num3="", addr1=ADDRESSING_MODE.DIRECT, addr2=ADDRESSING_MODE.DIRECT, addr3=ADDRESSING_MODE.DIRECT):
+        global pb_pointer
         self.action = action
         self.num1 = num1
         self.num2 = num2
@@ -150,6 +153,7 @@ class ThreeCodeAddress:
         self.addr2 = addr2
         self.addr3 = addr3
         three_code_address_list.append(self)
+        pb_pointer += 1
 
     def __str__(self):
         return "(" + self.action.value + ", " + str(self.addr1.value) + str(self.num1) + ", " + \
@@ -172,19 +176,15 @@ def memory():
     ThreeCodeAddress(ACTION.JP, "2")
 
 
-def mainFun():
-    # (JP, 2,  ,   )
-    ThreeCodeAddress(ACTION.JP, "2")
-
-
 def initialize():
-    # (ASSIGN, #0, 508,   )
+    # (ASSIGN, #0, t,   )
+    global currentID
+    print(currentID.lexeme)
     t = getTemp()
-
-    ThreeCodeAddress(ACTION.ASSIGN, "0", t, addr1=ADDRESSING_MODE.IMMEDIATE)
-
-# semantic_stack.append(tempAddress)
-    return 0
+    setattr(currentID, 'address', t)
+    #currentID.address = t
+    print(currentID.address)
+    ThreeCodeAddress(ACTION.ASSIGN, "0", str(t), addr1=ADDRESSING_MODE.IMMEDIATE)
 
 
 def assign():
@@ -193,10 +193,19 @@ def assign():
 
 
 def output():
-    ThreeCodeAddress(ACTION.PRINT, "0")
+    print(semantic_stack)
+    ThreeCodeAddress(ACTION.PRINT, semantic_stack.pop())
+
+
+def pushArg():
+    global currentID
+    print(";;;;;;;;;")
+    print(getattr(currentID, 'address'))
+    semantic_stack.append(currentID.address)
 
 
 def pid():
+    global currentID
 
     return 0
 
@@ -221,9 +230,19 @@ def checkOutput():
 
 
 def lessThan():
-    # (LT, 520, 524, 528 )
-   # ThreeCodeAddress(ACTION.LT, getTemp(), semantic_stack.pop(), semantic_stack.pop())
-    return 0
+    # (LT, A1, A2, R )
+  #  ThreeCodeAddress(ACTION.LT, str(getTemp()), semantic_stack.pop(), semantic_stack.pop())
+  return 0
+
+
+def equal():
+    # (EQ, A1, A2, R )
+    ThreeCodeAddress(ACTION.EQ, str(getTemp()), semantic_stack.pop(), semantic_stack.pop())
+
+
+def jumpOnFalse():
+    # (JPF, A, L, )
+    ThreeCodeAddress(ACTION.JPF, str(getTemp()), semantic_stack.pop(), semantic_stack.pop())
 
 
 def code_gen(action):
@@ -235,8 +254,6 @@ def code_gen(action):
         add()
     elif action == ACTION.ASSIGN:
         assign()
-    elif action == ACTION.MAINFUN:
-        mainFun()
     elif action == ACTION.INITIALIZE:
         initialize()
     elif action == ACTION.MEMORY:
@@ -245,6 +262,8 @@ def code_gen(action):
         output()
     elif action == ACTION.LESSTHAN:
         lessThan()
+    elif action == ACTION.PUSHARG:
+        pushArg()
 
 
 def main():
@@ -256,8 +275,6 @@ def main():
     input_file = open("input.txt", "r")
     program()
     symbol_writer()
-    print(symbol_HashTable["a"])
-    print(symbol_HashTable["b"])
     write_parse_tree()
     write_three_code_address()
     input_file.close()
@@ -315,7 +332,7 @@ def first(string):
 
 
 def match(terminal, parent):
-    global lookahead, currentState
+    global lookahead, currentState, currentID
     if terminal == "$":
         Node("$", parent)
     elif ((terminal == Token_Type.ID or terminal == Token_Type.NUM) and lookahead.type == terminal) or lookahead.lexeme == terminal:  # ID NUM
@@ -326,8 +343,8 @@ def match(terminal, parent):
                 Node("$", parent)
         else:
             Node(str(lookahead), parent)
-            if terminal == Token_Type.ID and lookahead.get_Address() is None:
-                lookahead.set_Address(getTemp())
+            if terminal == Token_Type.ID:
+                currentID = lookahead
             lookahead = get_next_token(input_file)
     else:
         if terminal == Token_Type.ID or terminal == Token_Type.NUM:
@@ -401,7 +418,7 @@ def declaration_initial(parent_node):
         node = Node(currentState, parent_node)
         type_specifier(node)
         match(Token_Type.ID, node)
-        code_gen(ACTION.INITIALIZE)
+        code_gen(ACTION.PID)
     elif checkError("Declaration-initial"):
         declaration_initial(parent_node)
 
@@ -426,10 +443,11 @@ def declaration_prime(parent_node):
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
         fun_declaration_prime(node)
-    elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime
+    elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime #initialize
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
         var_declaration_prime(node)
+        code_gen(ACTION.INITIALIZE)
     elif checkError("Declaration-prime"):
         declaration_prime(parent_node)
 
@@ -700,12 +718,12 @@ def addop(parent_node):
         currentState = "Addop"
         node = Node(currentState, parent_node)
         match("+", node)
-        code_gen(ACTION.ADD)
+        #code_gen(ACTION.ADD)
     elif lookahead.lexeme == "-":  # Addop -> - #sub
         currentState = "Addop"
         node = Node(currentState, parent_node)
         match("-", node)
-        code_gen(ACTION.SUB)
+        #code_gen(ACTION.SUB)
     elif checkError("Addop"):
         addop(parent_node)
 
@@ -783,11 +801,12 @@ def factor(parent_node):
 
 
 def arg_list(parent_node):
-    global lookahead, currentState
-    if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime"):  # Arg-list -> Expression Arg-list-prime
+    global lookahead, currentState, currentID
+    if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime"):  # Arg-list -> Expression #pushArg Arg-list-prime
         currentState = "Arg-list"
         node = Node(currentState, parent_node)
         expression(node)
+        code_gen(ACTION.PUSHARG)
         arg_list_prime(node)
     elif checkError("Arg-list"):
         arg_list(parent_node)
@@ -991,17 +1010,12 @@ class Token:
         self.lexeme = lexeme
         self.type = type
         self.line = line
+        self.address = None
         if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
             symbol_table.append(self)
             symbol_HashTable[lexeme] = self
         if needToAddToTokenList and self not in token_list:
             token_list.append(self)
-
-    def set_Address(self, address):
-        self._address = address
-
-    def get_Address(self):
-        return self._address
 
     def __str__(self):
         return "(" + self.type.name + ", " + self.lexeme + ")"
