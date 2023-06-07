@@ -135,7 +135,8 @@ class ACTION(Enum):
     LESSTHAN = "LESSTHAN"
     PUSHARG = "PUSHARG"
     PUSHNUM = "PUSHNUM"
-
+    SAVE = "SAVE"
+    JPFSAVE = "JPFSAVE"
 
 class ADDRESSING_MODE(Enum):
     IMMEDIATE = '#'
@@ -247,11 +248,23 @@ def equal():
     # (EQ, A1, A2, R )
     ThreeCodeAddress(ACTION.EQ, str(getTemp()), semantic_stack.pop(), semantic_stack.pop())
 
+def jump():
+    return 0
 
 def jumpOnFalse():
     # (JPF, A, L, )
     ThreeCodeAddress(ACTION.JPF, str(getTemp()), semantic_stack.pop(), semantic_stack.pop())
 
+def save():
+    global pb_pointer
+    semantic_stack.append(pb_pointer)
+    ThreeCodeAddress(ACTION.JPF, None, None)
+    
+def jpf_save():
+    head = semantic_stack.pop()
+    three_code_address_list[head] = ThreeCodeAddress(ACTION.JPF, semantic_stack.pop(), pb_pointer + 1)
+    three_code_address_list.pop() #removes the unneccassary command
+    save()
 
 def code_gen(action):
     if action == ACTION.PUSHID:
@@ -274,6 +287,15 @@ def code_gen(action):
         pushArg()
     elif action == ACTION.PUSHNUM:
         pushNum()
+    elif action == ACTION.SAVE:
+        save()
+    elif action == ACTION.JPF:
+        jumpOnFalse()
+    elif action == ACTION.JP:
+        jump()
+    elif action == ACTION.JPFSAVE:
+        jpf_save()
+
 
 
 def printS():
@@ -596,9 +618,12 @@ def selection_stmt(parent_node):
         match("(", node)
         expression(node)
         match(")", node)
+        code_gen(ACTION.SAVE) #save
         statement(node)
         match("else", node)
+        code_gen(ACTION.JPFSAVE) #jump then save
         statement(node)
+        code_gen(ACTION.JP) #jump
     elif checkError("Selection-stmt"):
         selection_stmt(parent_node)
 
