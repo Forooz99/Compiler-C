@@ -158,6 +158,10 @@ class ACTION(Enum):
     SAVE = "SAVE"
     JPFSAVE = "JPFSAVE"
     JPSAVE = "JPSAVE"
+    LABEL = "LABEL"
+    JPMAKEGAP = "JPMAKEGAP"
+    JPBREAK = "JPBREAK"
+    JPFUNTIL = "JPFUNTIL"
 
 
 class Semantic_Error:
@@ -248,6 +252,15 @@ def code_gen(action):
         jpf_save()
     elif action == ACTION.JPSAVE:
         jp_save()
+    elif action == ACTION.LABEL:
+        label()
+    elif action == ACTION.JPMAKEGAP:
+        jump_and_make_gap()
+    elif action == ACTION.JPBREAK:
+        jump_for_break()
+    elif action == ACTION.JPFUNTIL:
+        jump_until()
+        
 
 
 def getTemp():
@@ -352,13 +365,11 @@ def equal():
 
 def jumpOnFalse():
     # (JPF, A, L, )
-    #ThreeCodeAddress(ACTION.JPF, str(getTemp()), semantic_stack.pop(), semantic_stack.pop())
-    # jump destination and the result of expression are on top of stack.
+    result = semantic_stack.pop()
     head = semantic_stack.pop()
-    print(head)
-    three_code_address_list[head].action = ACTION.JPF
-    three_code_address_list[head].num1 = semantic_stack.pop()
-    three_code_address_list[head].num2 = (pb_pointer)
+    ThreeCodeAddress(ACTION.JPF, result, head)
+    # jump destination and the result of expression are on top of stack.
+    
 
 
 def save():
@@ -370,9 +381,11 @@ def save():
 def jpf_save():
     global pb_pointer
     head = semantic_stack.pop()
-    print(head)
+    result = semantic_stack.pop()
+    print(head, result)
+    
     three_code_address_list[head].action = ACTION.JPF
-    three_code_address_list[head].num1 = semantic_stack.pop()
+    three_code_address_list[head].num1 = result
     three_code_address_list[head].num2 = (pb_pointer + 1)
     save()
 
@@ -380,8 +393,35 @@ def jp_save(): #jumps to the last saved spot
     global pb_pointer
     head = semantic_stack.pop()
     print(head)
+    
     three_code_address_list[head] = ThreeCodeAddress(ACTION.JP, pb_pointer)
     three_code_address_list.pop() #removes the unneccassary command
+
+
+def label():
+    global pb_pointer
+    semantic_stack.append(pb_pointer)
+
+def jump_and_make_gap():
+    dest = pb_pointer + 2
+    ThreeCodeAddress(ACTION.JP, dest)
+    save()
+    label()
+
+def jump_for_break():
+    dest = semantic_stack[-2]
+    ThreeCodeAddress(ACTION.JP, dest)
+    
+
+def jump_until():
+    global pb_pointer
+    result = semantic_stack.pop()
+    head = semantic_stack.pop()
+    ThreeCodeAddress(ACTION.JPF, result, head)
+
+    head = semantic_stack.pop()
+    three_code_address_list[head].action = ACTION.JP
+    three_code_address_list[head].num1 = pb_pointer
 
 def printS():
     print("////////////////////")
@@ -677,6 +717,7 @@ def expression_stmt(parent_node):
         currentState = "Expression-stmt"
         node = Node(currentState, parent_node)
         match("break", node)
+        code_gen(ACTION.JPBREAK)
         match(";", node)
     elif lookahead.lexeme == ";":  # Expression-stmt -> ;
         currentState = "Expression-stmt"
@@ -711,13 +752,13 @@ def iteration_stmt(parent_node):
         currentState = "Iteration-stmt"
         node = Node(currentState, parent_node)
         match("repeat", node)
-        code_gen(ACTION.SAVE)
+        code_gen(ACTION.JPMAKEGAP)
         statement(node)
         match("until", node)
         match("(", node)
         expression(node)
         match(")", node)
-        code_gen(ACTION.JPF)
+        code_gen(ACTION.JPFUNTIL)
     elif checkError("Iteration-stmt"):
         iteration_stmt(parent_node)
 
