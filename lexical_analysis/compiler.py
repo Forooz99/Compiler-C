@@ -10,6 +10,7 @@ token_list = []
 error_list = []
 syntax_error_list = []
 three_code_address_list = []
+semantic_error_list = []
 symbol_HashTable = {}
 characterBuffer = None
 lineno = 1
@@ -116,7 +117,23 @@ dataAddress = 0
 currentID = None
 currentNUM = None
 currentSymbol = None
+currentKeyword = None
 pb_pointer = 0
+
+
+def main():
+    global input_file, lookahead
+    # initialize keywords as first tokens & add to symbol_table
+    for keyword in keywords:
+        Token(keyword, Token_Type.KEYWORD, needToAddToTokenList=False)
+
+    input_file = open("input.txt", "r")
+    program()
+    symbol_writer()
+    write_parse_tree()
+    write_three_code_address()
+    write_semantic_error()
+    input_file.close()
 
 
 class ACTION(Enum):
@@ -132,13 +149,34 @@ class ACTION(Enum):
     INITIALIZE = "INITIALIZE"
     MEMORY = "MEMORY"
     PUSHID = "PUSHID"
+    PUSHNUM = "PUSHNUM"
+    PUSHSYMBOL = "PUSHSYMBOL"
+    PUSHKEYWORD = "PUSHKEYWORD"
     OUTPUT = "OUTPUT"
     LESSTHAN = "LESSTHAN"
-    PUSHNUM = "PUSHNUM"
-    SYMBOL = "SYMBOL"
     EXPRESSION = "EXPRESSION"
     SAVE = "SAVE"
     JPFSAVE = "JPFSAVE"
+
+
+class Semantic_Error:
+    def __init__(self, errorType, token):
+        self.line = token.line
+        if errorType == SEMANTIC_ACTION.VARTYPE:
+            self.text = errorType.value + token.lexeme + "'."
+        semantic_error_list.append(self)
+
+    def __str__(self):
+        return "#" + str(self.line) + ": Semantic Error! " + self.text
+
+
+class SEMANTIC_ACTION(Enum):
+    SCOPING = 1
+    VARTYPE = "Illegal type of void for '"
+    PARAMNUM = 3
+    BREAK = 4
+    TYPEMISMATCH = 5
+    PARAMTYPE = 6
 
 
 class ADDRESSING_MODE(Enum):
@@ -165,6 +203,17 @@ class ThreeCodeAddress:
             str(self.addr2.value) + str(self.num2) + ", " + str(self.addr3.value) + str(self.num3) + " )"
 
 
+def semantic_check(action):
+    if action == SEMANTIC_ACTION.VARTYPE:
+        varType()
+
+
+def varType():
+    type = semantic_stack.pop()
+    if type.lexeme == "void":
+        Semantic_Error(SEMANTIC_ACTION.VARTYPE, type)
+
+
 def code_gen(action):
     if action == ACTION.MEMORY:
         memory()
@@ -178,6 +227,10 @@ def code_gen(action):
         output()
     elif action == ACTION.PUSHNUM:
         pushNum()
+    elif action == ACTION.PUSHSYMBOL:
+        pushSymbol()
+    elif action == ACTION.PUSHKEYWORD:
+        pushKeyword()
     elif action == ACTION.EXPRESSION:
         doExpression()
     elif action == ACTION.LESSTHAN:
@@ -210,18 +263,35 @@ def memory():
 
 def pushId():
     if currentID.lexeme != "output" and currentID.lexeme != "main":
-        semantic_stack.append(currentID)
+        if semantic_stack[-1].type == Token_Type.SYMBOL:
+            symbol = semantic_stack.pop()
+            semantic_stack.append(currentID)
+            semantic_stack.append(symbol)
+        else:
+            semantic_stack.append(currentID)
 
 
 def pushNum():
     semantic_stack.append(currentNUM)
 
 
+def pushSymbol():
+    semantic_stack.append(currentSymbol)
+
+
+
+def pushKeyword():
+    semantic_stack.append(currentKeyword)
+
+
+
 def initialize():
-    t = getTemp()
-    t1 = semantic_stack.pop()
-    t1.setAddress(t)  # add address to symbol tbl
-    ThreeCodeAddress(ACTION.ASSIGN, "0", str(t), addr1=ADDRESSING_MODE.IMMEDIATE)
+    temp = getTemp()
+    identifier = semantic_stack.pop()
+
+    identifier.setAddress(temp)  # add address to symbol tbl
+    ThreeCodeAddress(ACTION.ASSIGN, "0", str(temp), addr1=ADDRESSING_MODE.IMMEDIATE)
+
 
 
 def assign():
@@ -233,6 +303,15 @@ def assign():
 def output():
     t = semantic_stack.pop()
     ThreeCodeAddress(ACTION.PRINT, str(t))
+
+
+def doExpression():
+    if currentSymbol == "+":
+        add()
+    elif currentSymbol == "-":
+        sub()
+    elif currentSymbol == "*":
+        mult()
 
 
 def add():
@@ -294,34 +373,11 @@ def jpf_save():
     save()
 
 
-def doExpression():
-    if currentSymbol == "+":
-        add()
-    elif currentSymbol == "-":
-        sub()
-    elif currentSymbol == "*":
-        mult()
-
-
 def printS():
     print("////////////////////")
     for i in range(len(semantic_stack)):
         print(semantic_stack[i], i)
     print("////////////////////")
-
-
-def main():
-    global input_file, lookahead
-    # initialize keywords as first tokens & add to symbol_table
-    for keyword in keywords:
-        Token(keyword, Token_Type.KEYWORD, needToAddToTokenList=False)
-
-    input_file = open("input.txt", "r")
-    program()
-    symbol_writer()
-    write_parse_tree()
-    write_three_code_address()
-    input_file.close()
 
 
 def first(string):
@@ -376,7 +432,7 @@ def first(string):
 
 
 def match(terminal, parent):
-    global lookahead, currentState, currentID, currentNUM, currentSymbol
+    global lookahead, currentState, currentID, currentNUM, currentSymbol, currentKeyword
     if terminal == "$":
         Node("$", parent)
     elif ((terminal == Token_Type.ID or terminal == Token_Type.NUM) and lookahead.type == terminal) or lookahead.lexeme == terminal:
@@ -391,8 +447,10 @@ def match(terminal, parent):
                 currentID = lookahead
             elif terminal == Token_Type.NUM:
                 currentNUM = lookahead
+            elif lookahead.lexeme in keywords:
+                currentKeyword = lookahead
             else:
-                currentSymbol = lookahead.lexeme
+                currentSymbol = lookahead
             lookahead = get_next_token(input_file)
     else:
         if terminal == Token_Type.ID or terminal == Token_Type.NUM:
@@ -473,14 +531,16 @@ def declaration_initial(parent_node):
 
 def type_specifier(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "int":  # Type-specifier -> int
+    if lookahead.lexeme == "int":  # Type-specifier -> int #PUSHKEYWORD
         currentState = "Type-specifier"
         node = Node(currentState, parent_node)
         match("int", node)
-    elif lookahead.lexeme == "void":  # Type-specifier -> void
+        code_gen(ACTION.PUSHKEYWORD)
+    elif lookahead.lexeme == "void":  # Type-specifier -> void #PUSHKEYWORD
         currentState = "Type-specifier"
         node = Node(currentState, parent_node)
         match("void", node)
+        code_gen(ACTION.PUSHKEYWORD)
     elif checkError("Type-specifier"):
         type_specifier(parent_node)
 
@@ -496,6 +556,7 @@ def declaration_prime(parent_node):
         node = Node(currentState, parent_node)
         var_declaration_prime(node)
         code_gen(ACTION.INITIALIZE)
+        semantic_check(SEMANTIC_ACTION.VARTYPE)
     elif checkError("Declaration-prime"):
         declaration_prime(parent_node)
 
@@ -739,21 +800,6 @@ def expression(parent_node):
         expression(parent_node)
 
 
-def relop(parent_node):
-    global lookahead, currentState
-    if lookahead.lexeme == "<":  # Relop -> < #lessThan
-        currentState = "Relop"
-        node = Node(currentState, parent_node)
-        match("<", node)
-        code_gen(ACTION.LESSTHAN)
-    elif lookahead.lexeme == "==":  # Relop -> ==
-        currentState = "Relop"
-        node = Node(currentState, parent_node)
-        match("==", node)
-    elif checkError("Relop"):
-        relop(parent_node)
-
-
 def c(parent_node):
     global lookahead, currentState
     if lookahead.lexeme in first("Relop Additive-expression") or lookahead.type.value in first("Relop Additive-expression"):  # C -> Relop Additive-expression
@@ -761,22 +807,39 @@ def c(parent_node):
         node = Node("C", parent_node)
         relop(node)
         additive_expression(node)
+        code_gen(ACTION.LT)
     elif checkError("C", True, parent_node):
         c(parent_node)
 
 
+def relop(parent_node):
+    global lookahead, currentState
+    if lookahead.lexeme == "<":  # Relop -> < #PUSHSYMBOL
+        currentState = "Relop"
+        node = Node(currentState, parent_node)
+        match("<", node)
+        code_gen(ACTION.PUSHSYMBOL)
+    elif lookahead.lexeme == "==":  # Relop -> == #PUSHSYMBOL
+        currentState = "Relop"
+        node = Node(currentState, parent_node)
+        match("==", node)
+        code_gen(ACTION.PUSHSYMBOL)
+    elif checkError("Relop"):
+        relop(parent_node)
+
+
 def addop(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "+":  # Addop -> + #SYMBOL
+    if lookahead.lexeme == "+":  # Addop -> + ##PUSHSYMBOL
         currentState = "Addop"
         node = Node(currentState, parent_node)
         match("+", node)
-        code_gen(ACTION.SYMBOL)
-    elif lookahead.lexeme == "-":  # Addop -> - #SYMBOL
+        code_gen(ACTION.PUSHSYMBOL)
+    elif lookahead.lexeme == "-":  # Addop -> - ##PUSHSYMBOL
         currentState = "Addop"
         node = Node(currentState, parent_node)
         match("-", node)
-        code_gen(ACTION.SYMBOL)
+        code_gen(ACTION.PUSHSYMBOL)
     elif checkError("Addop"):
         addop(parent_node)
 
@@ -920,12 +983,11 @@ def factor_zegond(parent_node):
 
 def b(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "=":  # B -> = Expression #EXPRESSION #ASSIGN
+    if lookahead.lexeme == "=":  # B -> = Expression #ASSIGN
         currentState = "B"
         node = Node(currentState, parent_node)
         match("=", node)
         expression(node)
-        code_gen(ACTION.EXPRESSION)
         code_gen(ACTION.ASSIGN)
     elif lookahead.lexeme == "[":  # B -> [ Expression ] H
         currentState = "B"
@@ -966,6 +1028,7 @@ def additive_expression(parent_node):
         node = Node(currentState, parent_node)
         term(node)
         d(node)
+        code_gen(ACTION.EXPRESSION)
     elif checkError("Additive-expression"):
         additive_expression(parent_node)
 
@@ -988,6 +1051,7 @@ def simple_expression_prime(parent_node):
         currentState = "Simple-expression-prime"
         node = Node(currentState, parent_node)
         additive_expression_prime(node)
+        code_gen(ACTION.EXPRESSION)
         c(node)
     elif checkError("Simple-expression-prime"):
         simple_expression_prime(parent_node)
@@ -1000,6 +1064,7 @@ def additive_expression_prime(parent_node):
         node = Node(currentState, parent_node)
         term_prime(node)
         d(node)
+        code_gen(ACTION.EXPRESSION)
     elif checkError("Additive-expression-prime"):
         additive_expression_prime(parent_node)
 
@@ -1360,6 +1425,19 @@ def write_three_code_address():
             file.write(str(i) + "\t" + str(three_code_address_list[i]) + "\n")
     else:
         file.write("")
+    file.close()
+
+
+def write_semantic_error():
+    file = open("semantic_errors.txt", "w")
+    if len(semantic_error_list) != 0:
+        for i in range(len(semantic_error_list)):
+            if i == len(semantic_error_list) - 1:
+                file.write(str(semantic_error_list[i]))
+            else:
+                file.write(str(semantic_error_list[i]) + "\n")
+    else:
+        file.write("The input program is semantically correct.")
     file.close()
 
 
