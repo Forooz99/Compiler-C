@@ -136,6 +136,37 @@ def main():
     input_file.close()
 
 
+class Semantic_Error:
+    def __init__(self, token, text):
+        self.line = token.line
+        self.text = text
+        semantic_error_list.append(self)
+
+    def __str__(self):
+        return "#" + str(self.line) + ": Semantic Error! " + self.text
+
+
+class SEMANTIC_ACTION(Enum):
+    SCOPING = 1
+    VARTYPE = 2
+    PARAMNUM = 3
+    BREAK = 4
+    TYPEMISMATCH = 5
+    PARAMTYPE = 6
+
+
+def semantic_check(action):
+    if action == SEMANTIC_ACTION.VARTYPE:
+        varType()
+
+
+def varType():
+    token = semantic_stack.pop()
+    type = semantic_stack.pop()
+    if type.lexeme == "void":
+        Semantic_Error(token, "Illegal type of void for '" + token.lexeme + "'.")
+
+
 class ACTION(Enum):
     ASSIGN = "ASSIGN"
     ADD = "ADD"
@@ -163,26 +194,8 @@ class ACTION(Enum):
     JPMAKEGAP = "JPMAKEGAP"
     JPBREAK = "JPBREAK"
     JPFUNTIL = "JPFUNTIL"
-
-
-class Semantic_Error:
-    def __init__(self, errorType, token):
-        self.line = token.line
-        if errorType == SEMANTIC_ACTION.VARTYPE:
-            self.text = errorType.value + token.lexeme + "'."
-        semantic_error_list.append(self)
-
-    def __str__(self):
-        return "#" + str(self.line) + ": Semantic Error! " + self.text
-
-
-class SEMANTIC_ACTION(Enum):
-    SCOPING = 1
-    VARTYPE = "Illegal type of void for '"
-    PARAMNUM = 3
-    BREAK = 4
-    TYPEMISMATCH = 5
-    PARAMTYPE = 6
+    ARRAY = "ARRAY"
+    SETADDRESS = "SETADDRESS"
 
 
 class ADDRESSING_MODE(Enum):
@@ -208,17 +221,6 @@ class ThreeCodeAddress:
         return "(" + self.action.value + ", " + str(self.num1) + ", " + str(self.num2) + ", " + str(self.num3) + " )"
 
 
-def semantic_check(action):
-    if action == SEMANTIC_ACTION.VARTYPE:
-        varType()
-
-
-def varType():
-    type = semantic_stack.pop()
-    if type.lexeme == "void":
-        Semantic_Error(SEMANTIC_ACTION.VARTYPE, type)
-
-
 def code_gen(action):
     if action == ACTION.MEMORY:
         memory()
@@ -226,6 +228,8 @@ def code_gen(action):
         pushId()
     elif action == ACTION.INITIALIZE:
         initialize()
+    elif action == ACTION.ARRAY:
+        array()
     elif action == ACTION.ASSIGN:
         assign()
     elif action == ACTION.OUTPUT:
@@ -236,6 +240,8 @@ def code_gen(action):
         pushSymbol()
     elif action == ACTION.PUSHKEYWORD:
         pushKeyword()
+    elif action == ACTION.SETADDRESS:
+        setAddress()
     elif action == ACTION.EXPRESSION:
         doExpression()
     elif action == ACTION.LESSTHAN:
@@ -264,21 +270,29 @@ def code_gen(action):
         jump_until()
 
 
+def setAddress():
+    temp = getTemp()
+    index = semantic_stack.pop()
+    identifier = semantic_stack.pop()
+    ThreeCodeAddress(ACTION.MULT, index, "#4", str(temp))
+    ThreeCodeAddress(ACTION.ADD, identifier, str(temp), str(temp))
+    semantic_stack.append(temp)
+
 
 def getParameter(t):  # for defining addressing Mode
     if type(t) is Token:
         if t.type == Token_Type.ID:
-            return str(t)
+            return str(t.get_address())
         elif t.type == Token_Type.NUM:
             return "#" + t.lexeme
     else:
         return t
 
 
-def getTemp():
+def getTemp(a=1):
     global tempAddress
     x = tempAddress
-    tempAddress += 4
+    tempAddress += (a * 4)
     return x
 
 
@@ -290,6 +304,7 @@ def memory():
 
 
 def pushId():
+    global currentID
     if currentID.lexeme != "output" and currentID.lexeme != "main":
         semantic_stack.append(currentID)
 
@@ -300,6 +315,7 @@ def pushNum():
 
 def pushSymbol():
     semantic_stack.append(currentSymbol)
+
 
 def jump():
     return
@@ -313,12 +329,21 @@ def initialize():
     temp = getTemp()
     identifier = semantic_stack.pop()
     identifier.set_address(temp)  # add address to symbol tbl
-    print("llllllllllllllllllll")
-    print(identifier.get_address())
     ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
+    semantic_stack.append(identifier)  # for semantic check
+
+
+def array():
+    a = semantic_stack.pop()
+    temp = getTemp(int(a.lexeme))
+    identifier = semantic_stack.pop()
+    identifier.set_address(temp)  # add address to symbol tbl
+    ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
+    semantic_stack.append(identifier)  # for semantic check
 
 
 def assign():
+    global semantic_stack
     t1 = semantic_stack.pop()
     t2 = semantic_stack.pop()
     ThreeCodeAddress(ACTION.ASSIGN, t1, t2)
@@ -397,7 +422,6 @@ def jumpOnFalse():
     # jump destination and the result of expression are on top of stack.
 
 
-
 def save():
     global pb_pointer
     semantic_stack.append(pb_pointer)
@@ -415,6 +439,7 @@ def jpf_save():
     three_code_address_list[head].num2 = (pb_pointer + 1)
     save()
 
+
 def jp_save(): #jumps to the last saved spot
     global pb_pointer
     head = semantic_stack.pop()
@@ -428,11 +453,13 @@ def label():
     global pb_pointer
     semantic_stack.append(pb_pointer)
 
+
 def jump_and_make_gap():
     dest = pb_pointer + 2
     ThreeCodeAddress(ACTION.JP, dest)
     save()
     label()
+
 
 def jump_for_break():
     dest = semantic_stack[-2]
@@ -448,6 +475,7 @@ def jump_until():
     head = semantic_stack.pop()
     three_code_address_list[head].action = ACTION.JP
     three_code_address_list[head].num1 = pb_pointer
+
 
 def printS():
     print("////////////////////")
@@ -557,7 +585,7 @@ def checkError(state, haveEpsilon=False, parent=None):
 def program():
     global lookahead, rootNode, currentState
     lookahead = get_next_token(input_file)
-    if lookahead.lexeme in first("Declaration-list"):  # Program -> #memory Declaration-list
+    if lookahead.lexeme in first("Declaration-list"):  # Program -> #MEMORY Declaration-list
         currentState = "Program"
         rootNode = Node(currentState)
         code_gen(ACTION.MEMORY)
@@ -611,12 +639,12 @@ def type_specifier(parent_node):
         currentState = "Type-specifier"
         node = Node(currentState, parent_node)
         match("int", node)
-        # code_gen(ACTION.PUSHKEYWORD)
+        code_gen(ACTION.PUSHKEYWORD)
     elif lookahead.lexeme == "void":  # Type-specifier -> void #PUSHKEYWORD
         currentState = "Type-specifier"
         node = Node(currentState, parent_node)
         match("void", node)
-        # code_gen(ACTION.PUSHKEYWORD)
+        code_gen(ACTION.PUSHKEYWORD)
     elif checkError("Type-specifier"):
         type_specifier(parent_node)
 
@@ -627,12 +655,11 @@ def declaration_prime(parent_node):
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
         fun_declaration_prime(node)
-    elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime #INITIALIZE
+    elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime #VARTYPE
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
         var_declaration_prime(node)
-        code_gen(ACTION.INITIALIZE)
-        # semantic_check(SEMANTIC_ACTION.VARTYPE)
+        semantic_check(SEMANTIC_ACTION.VARTYPE)
     elif checkError("Declaration-prime"):
         declaration_prime(parent_node)
 
@@ -648,6 +675,26 @@ def fun_declaration_prime(parent_node):
         compound_stmt(node)
     elif checkError("Fun-declaration-prime"):
         fun_declaration_prime(parent_node)
+
+
+def var_declaration_prime(parent_node):
+    global lookahead, currentState
+    if lookahead.lexeme == ";":  # Var-declaration-prime -> ; #INITIALIZE
+        currentState = "Var-declaration-prime"
+        node = Node(currentState, parent_node)
+        match(";", node)
+        code_gen(ACTION.INITIALIZE)
+    elif lookahead.lexeme == "[":  # Var-declaration-prime -> [ NUM #PUSHNUM] ; #ARRAY
+        currentState = "Var-declaration-prime"
+        node = Node(currentState, parent_node)
+        match("[", node)
+        match(Token_Type.NUM, node)
+        code_gen(ACTION.PUSHNUM)
+        match("]", node)
+        match(";", node)
+        code_gen(ACTION.ARRAY)
+    elif checkError("Var-declaration-prime"):
+        var_declaration_prime(parent_node)
 
 
 def params(parent_node):
@@ -666,23 +713,6 @@ def params(parent_node):
         match("void", node)
     elif checkError("Params"):
         params(parent_node)
-
-
-def var_declaration_prime(parent_node):
-    global lookahead, currentState
-    if lookahead.lexeme == ";":  # Var-declaration-prime -> ;
-        currentState = "Var-declaration-prime"
-        node = Node(currentState, parent_node)
-        match(";", node)
-    elif lookahead.lexeme == "[":  # Var-declaration-prime -> [ NUM ] ;
-        currentState = "Var-declaration-prime"
-        node = Node(currentState, parent_node)
-        match("[", node)
-        match(Token_Type.NUM, node)
-        match("]", node)
-        match(";", node)
-    elif checkError("Var-declaration-prime"):
-        var_declaration_prime(parent_node)
 
 
 def param_list(parent_node):
@@ -991,7 +1021,7 @@ def factor(parent_node):
         match(Token_Type.ID, node)
         code_gen(ACTION.PUSHID)
         var_call_prime(node)
-    elif lookahead.type == Token_Type.NUM:  # Factor -> NUM #pushNum
+    elif lookahead.type == Token_Type.NUM:  # Factor -> NUM #PUSHNUM
         currentState = "Factor"
         node = Node(currentState, parent_node)
         match(Token_Type.NUM, node)
@@ -1001,7 +1031,7 @@ def factor(parent_node):
 
 
 def arg_list(parent_node):
-    global lookahead, currentState, currentID
+    global lookahead, currentState
     if lookahead.lexeme in first("Expression Arg-list-prime") or lookahead.type.value in first("Expression Arg-list-prime"):  # Arg-list -> Expression Arg-list-prime
         currentState = "Arg-list"
         node = Node(currentState, parent_node)
@@ -1052,7 +1082,7 @@ def factor_zegond(parent_node):
         match("(", node)
         expression(node)
         match(")", node)
-    elif lookahead.type == Token_Type.NUM:  # Factor-zegond -> NUM #pushNum
+    elif lookahead.type == Token_Type.NUM:  # Factor-zegond -> NUM #PUSHNUM
         currentState = "Factor-zegond"
         node = Node(currentState, parent_node)
         match(Token_Type.NUM, node)
@@ -1069,12 +1099,13 @@ def b(parent_node):
         match("=", node)
         expression(node)
         code_gen(ACTION.ASSIGN)
-    elif lookahead.lexeme == "[":  # B -> [ Expression ] H
+    elif lookahead.lexeme == "[":  # B -> [ Expression ] #SETADDRESS H
         currentState = "B"
         node = Node(currentState, parent_node)
         match("[", node)
         expression(node)
         match("]", node)
+        code_gen(ACTION.SETADDRESS)
         h(node)
     elif lookahead.lexeme in first("Simple-expression-prime") or lookahead.type.value in first("Simple-expression-prime"):  # B -> Simple-expression-prime
         currentState = "B"
@@ -1086,11 +1117,12 @@ def b(parent_node):
 
 def h(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "=":  # H -> = Expression
+    if lookahead.lexeme == "=":  # H -> = Expression #ASSIGN
         currentState = "H"
         node = Node(currentState, parent_node)
         match("=", node)
         expression(node)
+        code_gen(ACTION.ASSIGN)
     elif lookahead.lexeme in first("G D C") or lookahead.type.value in first("G D C"):  # H -> G D C
         currentState = "H"
         node = Node(currentState, parent_node)
