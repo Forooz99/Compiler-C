@@ -151,6 +151,7 @@ class SEMANTIC_ACTION(Enum):
 
 
 def semantic_check(action):
+    
     if action == SEMANTIC_ACTION.VARTYPE:
         varType()
     elif action == SEMANTIC_ACTION.SCOPING:
@@ -280,6 +281,7 @@ def getParameter(t):  # for defining addressing Mode
 
 
 def code_gen(action):
+    
     if action == ACTION.MAINFUN:
         mainFun()
     elif action == ACTION.PUSHID:
@@ -330,7 +332,7 @@ def mainFun():
     ThreeCodeAddress(ACTION.JP, str(pb_pointer + 1))
 
 
-def pushId():
+def pushId(): #debug
     if lookahead.lexeme != "main" and lookahead.lexeme != "output":
         semantic_stack.append(lookahead)
 
@@ -365,16 +367,16 @@ def array():
     semantic_stack.append(identifier)  # for semantic check
 
 
-def assign():
+def assign(): #debug
     global semantic_stack
     t1 = semantic_stack.pop()
-    t2 = semantic_stack.pop()
-    ThreeCodeAddress(ACTION.ASSIGN, getParameter(t1), getParameter(t2))
+    #t2 = semantic_stack.pop()
+    ThreeCodeAddress(ACTION.ASSIGN, getParameter(t1), getParameter(semantic_stack[-1]))
 
 
-def output():
-    t = semantic_stack.pop()
-    ThreeCodeAddress(ACTION.PRINT, getParameter(t))
+def output(): #debug
+    #t = semantic_stack.pop()
+    ThreeCodeAddress(ACTION.PRINT, getParameter(semantic_stack[-1]))
 
 
 def pushSymbol():
@@ -471,7 +473,7 @@ def jpf_save():
 def jp_save():  # jumps to the last saved spot
     global pb_pointer
     head = semantic_stack.pop()
-
+    
     three_code_address_list[head] = ThreeCodeAddress(ACTION.JP, pb_pointer)
     three_code_address_list.pop()  # removes the unneccassary command
 
@@ -497,6 +499,9 @@ def jump_until():
     global pb_pointer
     result = semantic_stack.pop()
     head = semantic_stack.pop()
+    print(result)
+    print(head)
+
     ThreeCodeAddress(ACTION.JPF, result, head)
 
     head = semantic_stack.pop()
@@ -806,6 +811,7 @@ def expression_stmt(parent_node):
         node = Node(currentState, parent_node)
         expression(node)
         match(";", node)
+        semantic_stack.pop()
     elif lookahead.lexeme == "break":  # Expression-stmt -> break ;
         currentState = "Expression-stmt"
         node = Node(currentState, parent_node)
@@ -938,7 +944,7 @@ def additive_expression_zegond(parent_node):
         additive_expression_zegond(parent_node)
 
 
-def expression(parent_node):
+def expression(parent_node): #debug
     global lookahead, currentState
     if lookahead.lexeme in first("Simple-expression-zegond") or lookahead.type.value in first(
             "Simple-expression-zegond"):  # Expression -> Simple_expression_zegond
@@ -1126,7 +1132,7 @@ def term_zegond(parent_node):
         term_zegond(parent_node)
 
 
-def factor_zegond(parent_node):
+def factor_zegond(parent_node): #debug
     global lookahead, currentState
     if lookahead.lexeme == "(":  # Factor-zegond -> ( Expression )
         currentState = "Factor-zegond"
