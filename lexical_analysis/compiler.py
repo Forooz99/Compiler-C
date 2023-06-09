@@ -11,7 +11,6 @@ error_list = []
 syntax_error_list = []
 three_code_address_list = []
 semantic_error_list = []
-symbol_HashTable = {}
 characterBuffer = None
 lineno = 1
 input_file = None
@@ -114,13 +113,7 @@ follow_set = {
 }
 semantic_stack = []
 tempAddress = 500
-dataAddress = 0
-currentID = None
-currentNUM = None
-currentSymbol = None
-currentKeyword = None
 pb_pointer = 0
-variables = []
 
 
 def main():
@@ -355,7 +348,6 @@ def pushId():
 
 
 def initialize():
-    global lookahead
     temp = getTemp()
     identifier = semantic_stack.pop()
     type = semantic_stack[-1]
@@ -378,6 +370,8 @@ def array():
     a = semantic_stack.pop()
     temp = getTemp(int(a.lexeme))
     identifier = semantic_stack.pop()
+    type = semantic_stack[-1]
+    setVarTypeForToken(identifier.lexeme, type.lexeme)
     setTempForToken(identifier.lexeme, temp)  # add address to symbol tbl
     ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
     semantic_stack.append(identifier)  # for semantic check
@@ -575,7 +569,7 @@ def first(string):
 
 
 def match(terminal, parent):
-    global lookahead, currentState, currentID, currentNUM, currentSymbol, currentKeyword
+    global lookahead, currentState
     if terminal == "$":
         Node("$", parent)
     elif ((terminal == Token_Type.ID or terminal == Token_Type.NUM) and lookahead.type == terminal) or lookahead.lexeme == terminal:
@@ -586,14 +580,6 @@ def match(terminal, parent):
                 Node("$", parent)
         else:
             Node(str(lookahead), parent)
-            # if terminal == Token_Type.ID:
-            #     currentID = lookahead
-            # elif terminal == Token_Type.NUM:
-            #     currentNUM = lookahead
-            # elif lookahead.lexeme in keywords:
-            #     currentKeyword = lookahead
-            # else:
-            #     currentSymbol = lookahead
             lookahead = get_next_token(input_file)
     else:
         if terminal == Token_Type.ID or terminal == Token_Type.NUM:
@@ -752,6 +738,7 @@ def params(parent_node):
         code_gen(ACTION.PUSHID)
         match(Token_Type.ID, node)
         param_prime(node)
+        code_gen(ACTION.INITIALIZE)
         param_list(node)
     elif lookahead.lexeme == "void":  # Params -> void
         currentState = "Params"
@@ -1316,7 +1303,6 @@ class Token:
         self.varType = ""
         if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
             symbol_table.append(self)
-            symbol_HashTable[lexeme] = self
         if needToAddToTokenList and self not in token_list:
             token_list.append(self)
 
