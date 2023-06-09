@@ -185,7 +185,8 @@ def paramNum():
 
 
 def doBreak():
-    token = semantic_stack.pop()
+    global lookahead
+    token = lookahead
     Semantic_Error(token, "No 'repeat ... until' found for 'break'.")
 
 
@@ -456,7 +457,7 @@ def jumpOnFalse():
 def save():
     global pb_pointer
     semantic_stack.append(pb_pointer)
-    ThreeCodeAddress(ACTION.JPF, None, None)
+    ThreeCodeAddress(ACTION.JPF)
 
 
 def jpf_save():
@@ -474,8 +475,9 @@ def jp_save():  # jumps to the last saved spot
     global pb_pointer
     head = semantic_stack.pop()
     
-    three_code_address_list[head] = ThreeCodeAddress(ACTION.JP, pb_pointer)
-    three_code_address_list.pop()  # removes the unneccassary command
+    three_code_address_list[head]= ThreeCodeAddress(ACTION.JP, pb_pointer)
+    
+    three_code_address_list.pop()
 
 
 def label():
@@ -484,15 +486,33 @@ def label():
 
 
 def jump_and_make_gap():
+    global pb_pointer
     dest = pb_pointer + 2
     ThreeCodeAddress(ACTION.JP, dest)
-    save()
+    semantic_stack.append(str(pb_pointer) + "!")
+    ThreeCodeAddress(ACTION.JPF)
     label()
 
 
 def jump_for_break():
-    dest = semantic_stack[-2]
-    ThreeCodeAddress(ACTION.JP, dest)
+    if len(semantic_stack) < 2:
+        semantic_check(SEMANTIC_ACTION.BREAK)
+    else:
+        stat = False
+        for i in range(1,len(semantic_stack)):
+            r = semantic_stack.copy()
+            r.reverse()
+            
+            if type(r[i]) == str:
+               if r[i][-1] == "!":
+                ThreeCodeAddress(ACTION.JP, int(r[i][0:-1]))
+                stat = True
+                break 
+            
+        if not stat:        
+            semantic_check(SEMANTIC_ACTION.BREAK)
+       
+            
 
 
 def jump_until():
@@ -503,8 +523,9 @@ def jump_until():
     print(head)
 
     ThreeCodeAddress(ACTION.JPF, result, head)
-
-    head = semantic_stack.pop()
+    
+    head = int(semantic_stack.pop()[0:-1])
+    print(head)
     three_code_address_list[head].action = ACTION.JP
     three_code_address_list[head].num1 = pb_pointer
 
@@ -815,8 +836,9 @@ def expression_stmt(parent_node):
     elif lookahead.lexeme == "break":  # Expression-stmt -> break ;
         currentState = "Expression-stmt"
         node = Node(currentState, parent_node)
-        match("break", node)
         code_gen(ACTION.JPBREAK)
+        match("break", node)
+        
         match(";", node)
     elif lookahead.lexeme == ";":  # Expression-stmt -> ;
         currentState = "Expression-stmt"
