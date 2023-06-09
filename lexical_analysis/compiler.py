@@ -231,7 +231,6 @@ class ACTION(Enum):
     INITIALIZE = "INITIALIZE"
     MEMORY = "MEMORY"
     PUSHID = "PUSHID"
-    OUTPUT = "OUTPUT"
     LESSTHAN = "LESSTHAN"
     EXPRESSION = "EXPRESSION"
     SAVE = "SAVE"
@@ -298,7 +297,7 @@ def code_gen(action):
         array()
     elif action == ACTION.ASSIGN:
         assign()
-    elif action == ACTION.OUTPUT:
+    elif action == ACTION.PRINT:
         output()
     elif action == ACTION.SETADDRESS:
         setAddress()
@@ -306,8 +305,6 @@ def code_gen(action):
         doExpression()
     elif action == ACTION.LESSTHAN:
         lessThan()
-    elif action == ACTION.OUTPUT:
-        output()
     elif action == ACTION.RELOP:
         doRelop()
     elif action == ACTION.SAVE:
@@ -351,11 +348,20 @@ def initialize():
     semantic_stack.append(identifier)  # for semantic check
 
 
+def setAddress():
+    temp = getTemp()
+    index = semantic_stack.pop()
+    identifier = semantic_stack.pop()
+    ThreeCodeAddress(ACTION.MULT, getParameter(index), "#4", str(temp))
+    ThreeCodeAddress(ACTION.ADD, "#" + getParameter(identifier), str(temp), str(temp))
+    semantic_stack.append("@" + str(temp))
+
+
 def array():
     a = semantic_stack.pop()
     temp = getTemp(int(a.lexeme))
     identifier = semantic_stack.pop()
-    identifier.set_address(temp)  # add address to symbol tbl
+    setTempForToken(identifier.lexeme, temp)  # add address to symbol tbl
     ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
     semantic_stack.append(identifier)  # for semantic check
 
@@ -370,15 +376,6 @@ def assign():
 def output():
     t = semantic_stack.pop()
     ThreeCodeAddress(ACTION.PRINT, getParameter(t))
-
-
-def setAddress():
-    temp = getTemp()
-    index = semantic_stack.pop()
-    identifier = semantic_stack.pop()
-    ThreeCodeAddress(ACTION.MULT, index, "#4", str(temp))
-    ThreeCodeAddress(ACTION.ADD, identifier, str(temp), str(temp))
-    semantic_stack.append(temp)
 
 
 def pushSymbol():
@@ -506,13 +503,6 @@ def jump_until():
     head = semantic_stack.pop()
     three_code_address_list[head].action = ACTION.JP
     three_code_address_list[head].num1 = pb_pointer
-
-
-def printS():
-    print("////////////////////")
-    for i in range(len(semantic_stack)):
-        print(semantic_stack[i], i)
-    print("////////////////////")
 
 
 # ########## Parser ########## #
@@ -1048,8 +1038,7 @@ def var_call_prime(parent_node):
         match("(", node)
         args(node)
         match(")", node)
-    elif lookahead.lexeme in first("Var-prime") or lookahead.type.value in first(
-            "Var-prime"):  # Var-call-prime -> Var-prime
+    elif lookahead.lexeme in first("Var-prime") or lookahead.type.value in first("Var-prime"):  # Var-call-prime -> Var-prime
         currentState = "Var-call-prime"
         node = Node(currentState, parent_node)
         var_prime(node)
@@ -1199,12 +1188,13 @@ def additive_expression(parent_node):
 
 def var_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "[":  # Var-prime -> [ Expression ]
+    if lookahead.lexeme == "[":  # Var-prime -> [ Expression ] #SETADDRESS
         currentState = "Var-prime"
         node = Node(currentState, parent_node)
         match("[", node)
         expression(node)
         match("]", node)
+        code_gen(ACTION.SETADDRESS)
     elif checkError("Var-prime", True, parent_node):
         var_prime(parent_node)
 
@@ -1247,13 +1237,13 @@ def term_prime(parent_node):
 
 def factor_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "(":  # Factor-prime -> ( Args #OUTPUT )
+    if lookahead.lexeme == "(":  # Factor-prime -> ( Args #PRINT )
         currentState = "Factor-prime"
         node = Node(currentState, parent_node)
         match("(", node)
         args(node)
         match(")", node)
-        code_gen(ACTION.OUTPUT)
+        code_gen(ACTION.PRINT)
     elif checkError("Factor-prime", True, parent_node):
         factor_prime(parent_node)
 
