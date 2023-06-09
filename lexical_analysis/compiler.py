@@ -120,6 +120,7 @@ currentNUM = None
 currentSymbol = None
 currentKeyword = None
 pb_pointer = 0
+variables = []
 
 
 def main():
@@ -147,6 +148,18 @@ def getTempOfToken(lexeme):
     for t in symbol_table:
         if t.lexeme == lexeme:
             return t.address
+
+
+def setVarTypeForToken(lexeme, type):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            t.varType = type
+
+
+def getVarTypeOfToken(lexeme):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            return t.varType
 
 
 # ########## Semantic ########## #
@@ -192,21 +205,19 @@ def varType():
 
 
 def scoping():
-    token = semantic_stack.pop()
-    Semantic_Error(token, "'" + token.lexeme + "' is not defined.")
-    return 0
+    global lookahead
+    if lookahead.lexeme != "output" and getVarTypeOfToken(lookahead.lexeme) == "":
+        Semantic_Error(lookahead, "'" + lookahead.lexeme + "' is not defined.")
 
 
 def paramNum():
     token = semantic_stack.pop()
     Semantic_Error(token, "Mismatch in numbers of arguments of '" + token.lexeme + "'.")
-    return 0
 
 
 def doBreak():
     token = semantic_stack.pop()
     Semantic_Error(token, "No 'repeat ... until' found for 'break'.")
-    return 0
 
 
 def typeMismatch():
@@ -219,6 +230,8 @@ def paramType():
 
 # ########## Code Generation ########## #
 class ACTION(Enum):
+    BYTE = "BYTE"
+    MAINFUN = "MAINFUN"
     ASSIGN = "ASSIGN"
     ADD = "ADD"
     MULT = "MULT"
@@ -229,7 +242,6 @@ class ACTION(Enum):
     JP = "JP"
     PRINT = "PRINT"
     INITIALIZE = "INITIALIZE"
-    MEMORY = "MEMORY"
     PUSHID = "PUSHID"
     LESSTHAN = "LESSTHAN"
     EXPRESSION = "EXPRESSION"
@@ -287,8 +299,8 @@ def getParameter(t):  # for defining addressing Mode
 
 
 def code_gen(action):
-    if action == ACTION.MEMORY:
-        memory()
+    if action == ACTION.MAINFUN:
+        mainFun()
     elif action == ACTION.PUSHID:
         pushId()
     elif action == ACTION.INITIALIZE:
@@ -325,17 +337,20 @@ def code_gen(action):
         jump_for_break()
     elif action == ACTION.JPFUNTIL:
         jump_until()
+    elif action == ACTION.BYTE:
+        byte()
 
 
-def memory():
-    getTemp()
+def byte():
     ThreeCodeAddress(ACTION.ASSIGN, "#4", "0", addr1=ADDRESSING_MODE.IMMEDIATE)
-    getTemp()
-    ThreeCodeAddress(ACTION.JP, "2")
+
+
+def mainFun():
+    ThreeCodeAddress(ACTION.JP, str(pb_pointer + 1))
 
 
 def pushId():
-    if lookahead.lexeme != "output" and lookahead.lexeme != "main":
+    if lookahead.lexeme != "main" and lookahead.lexeme != "output":
         semantic_stack.append(lookahead)
 
 
@@ -343,6 +358,8 @@ def initialize():
     global lookahead
     temp = getTemp()
     identifier = semantic_stack.pop()
+    type = semantic_stack[-1]
+    setVarTypeForToken(identifier.lexeme, type.lexeme)
     setTempForToken(identifier.lexeme, temp)  # add address to symbol tbl
     ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
     semantic_stack.append(identifier)  # for semantic check
@@ -607,10 +624,10 @@ def checkError(state, haveEpsilon=False, parent=None):
 def program():
     global lookahead, rootNode, currentState
     lookahead = get_next_token(input_file)
-    if lookahead.lexeme in first("Declaration-list"):  # Program -> #MEMORY Declaration-list
+    if lookahead.lexeme in first("Declaration-list"):  # Program -> #BYTE Declaration-list
         currentState = "Program"
         rootNode = Node(currentState)
-        code_gen(ACTION.MEMORY)
+        code_gen(ACTION.BYTE)
         declaration_list(rootNode)
     elif "EPSILON" in first("Declaration-list") and (
             lookahead.lexeme in follow_set["Program"] or lookahead.type.value in follow_set["Program"]):
@@ -622,14 +639,13 @@ def program():
 
 def declaration_list(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Declaration Declaration-list"):  # Declaration-list -> Declaration Declaration-list
+    # Declaration-list -> Declaration Declaration-list
+    if lookahead.lexeme in first("Declaration Declaration-list"):
         currentState = "Declaration-list"
         node = Node(currentState, parent_node)
         declaration(node)
         declaration_list(node)
-    elif "EPSILON" in first("Declaration Declaration-list") and (
-            lookahead.lexeme in follow_set["Declaration-list"] or lookahead.type.value in follow_set[
-        "Declaration-list"]):
+    elif "EPSILON" in first("Declaration Declaration-list") and (lookahead.lexeme in follow_set["Declaration-list"] or lookahead.type.value in follow_set["Declaration-list"]):
         Node("epsilon", rootNode)
     elif checkError("Declaration-list", True, parent_node):
         declaration_list(parent_node)
@@ -637,8 +653,8 @@ def declaration_list(parent_node):
 
 def declaration(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first(
-            "Declaration-initial Declaration-prime"):  # Declaration -> Declaration-initial Declaration-prime
+    # Declaration -> Declaration-initial Declaration-prime
+    if lookahead.lexeme in first("Declaration-initial Declaration-prime"):
         currentState = "Declaration"
         node = Node(currentState, parent_node)
         declaration_initial(node)
@@ -649,7 +665,8 @@ def declaration(parent_node):
 
 def declaration_initial(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Type-specifier"):  # Declaration-initial -> Type-specifier #PUSHID ID
+    # Declaration-initial -> Type-specifier #PUSHID ID
+    if lookahead.lexeme in first("Type-specifier"):
         currentState = "Declaration-initial"
         node = Node(currentState, parent_node)
         type_specifier(node)
@@ -677,11 +694,14 @@ def type_specifier(parent_node):
 
 def declaration_prime(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme in first("Fun-declaration-prime"):  # Declaration-prime -> Fun-declaration-prime
+    # Declaration-prime -> #MAINFUN Fun-declaration-prime
+    if lookahead.lexeme in first("Fun-declaration-prime"):
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
+        code_gen(ACTION.MAINFUN)
         fun_declaration_prime(node)
-    elif lookahead.lexeme in first("Var-declaration-prime"):  # Declaration-prime -> Var_declaration_prime #VARTYPE
+    # Declaration-prime -> Var_declaration_prime #VARTYPE
+    elif lookahead.lexeme in first("Var-declaration-prime"):
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
         var_declaration_prime(node)
@@ -940,6 +960,7 @@ def expression(parent_node):
         currentState = "Expression"
         node = Node(currentState, parent_node)
         code_gen(ACTION.PUSHID)
+        semantic_check(SEMANTIC_ACTION.SCOPING)
         match(Token_Type.ID, node)
         b(node)
     elif checkError("Expression"):
@@ -1054,10 +1075,11 @@ def factor(parent_node):
         match("(", node)
         expression(node)
         match(")", node)
-    elif lookahead.type == Token_Type.ID:  # Factor -> #PUSHID ID Var-call-prime
+    elif lookahead.type == Token_Type.ID:  # Factor -> #PUSHID #SCOPING ID Var-call-prime
         currentState = "Factor"
         node = Node(currentState, parent_node)
         code_gen(ACTION.PUSHID)
+        semantic_check(SEMANTIC_ACTION.SCOPING)
         match(Token_Type.ID, node)
         var_call_prime(node)
     elif lookahead.type == Token_Type.NUM:  # Factor -> #PUSHID NUM
@@ -1291,6 +1313,7 @@ class Token:
         self.type = type
         self.line = line
         self.address = 0
+        self.varType = ""
         if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
             symbol_table.append(self)
             symbol_HashTable[lexeme] = self
