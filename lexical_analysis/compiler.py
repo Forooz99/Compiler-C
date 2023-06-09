@@ -124,35 +124,10 @@ def main():
 
     input_file = open("input.txt", "r")
     program()
-    symbol_writer()
     write_parse_tree()
     write_three_code_address()
     write_semantic_error()
     input_file.close()
-
-
-def setTempForToken(lexeme, temp):
-    for t in symbol_table:
-        if t.lexeme == lexeme:
-            t.address = temp
-
-
-def getTempOfToken(lexeme):
-    for t in symbol_table:
-        if t.lexeme == lexeme:
-            return t.address
-
-
-def setVarTypeForToken(lexeme, type):
-    for t in symbol_table:
-        if t.lexeme == lexeme:
-            t.varType = type
-
-
-def getVarTypeOfToken(lexeme):
-    for t in symbol_table:
-        if t.lexeme == lexeme:
-            return t.varType
 
 
 # ########## Semantic ########## #
@@ -219,6 +194,19 @@ def typeMismatch():
 
 def paramType():
     return 0
+
+
+def write_semantic_error():
+    file = open("semantic_errors.txt", "w")
+    if len(semantic_error_list) != 0:
+        for i in range(len(semantic_error_list)):
+            if i == len(semantic_error_list) - 1:
+                file.write(str(semantic_error_list[i]))
+            else:
+                file.write(str(semantic_error_list[i]) + "\n")
+    else:
+        file.write("The input program is semantically correct.")
+    file.close()
 
 
 # ########## Code Generation ########## #
@@ -514,6 +502,20 @@ def jump_until():
     head = semantic_stack.pop()
     three_code_address_list[head].action = ACTION.JP
     three_code_address_list[head].num1 = pb_pointer
+
+
+def write_three_code_address():
+    global three_code_address_list
+    file = open("output.txt", "w")
+    if len(three_code_address_list) != 0:
+        for i in range(len(three_code_address_list)):
+            if i == len(three_code_address_list) - 1:
+                file.write(str(i) + "\t" + str(three_code_address_list[i]))
+            else:
+                file.write(str(i) + "\t" + str(three_code_address_list[i]) + "\n")
+    else:
+        file.write("")
+    file.close()
 
 
 # ########## Parser ########## #
@@ -1257,6 +1259,15 @@ def factor_prime(parent_node):
         factor_prime(parent_node)
 
 
+def write_parse_tree():
+    global rootNode
+
+    file = open("parse_tree.txt", "w", encoding="utf-8")
+    for pre, _, node in RenderTree(rootNode):
+        file.write(("%s%s" % (pre, node.name)) + "\n")
+    file.close()
+
+
 # ########## Scanner ########## #
 class Token_Type(Enum):
     NUM = "NUM"
@@ -1266,6 +1277,47 @@ class Token_Type(Enum):
     COMMENT = "COMMENT"
     WHITESPACE = "WHITESPACE"
     FINAL = "FINAL"
+
+
+class Token:
+    def __init__(self, lexeme="", type=Token_Type.ID, line=0, needToAddToTokenList=True):
+        self.lexeme = lexeme
+        self.type = type
+        self.line = line
+        self.address = 0
+        self.varType = ""
+        self.numberOfArgument = 0
+        if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
+            symbol_table.append(self)
+        if needToAddToTokenList and self not in token_list:
+            token_list.append(self)
+
+    def __str__(self):
+        return "(" + self.type.name + ", " + self.lexeme + ")"
+
+
+def setTempForToken(lexeme, temp):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            t.address = temp
+
+
+def getTempOfToken(lexeme):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            return t.address
+
+
+def setVarTypeForToken(lexeme, type):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            t.varType = type
+
+
+def getVarTypeOfToken(lexeme):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            return t.varType
 
 
 class Syntax_Error_Type(Enum):
@@ -1291,23 +1343,6 @@ class Syntax_Error:
 
     def __str__(self):
         return "#" + str(self.line) + " : syntax error, " + self.text
-
-
-class Token:
-
-    def __init__(self, lexeme="", type=Token_Type.ID, line=0, needToAddToTokenList=True):
-        self.lexeme = lexeme
-        self.type = type
-        self.line = line
-        self.address = 0
-        self.varType = ""
-        if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
-            symbol_table.append(self)
-        if needToAddToTokenList and self not in token_list:
-            token_list.append(self)
-
-    def __str__(self):
-        return "(" + self.type.name + ", " + self.lexeme + ")"
 
 
 class ERROR_Type(Enum):
@@ -1528,12 +1563,6 @@ def findType(token):
         return Token_Type.ID
 
 
-def initial_error_writer():
-    file = open("lexical_errors.txt", "w")
-    file.write("There is no lexical error.")
-    file.close()
-
-
 def file_writer(content, file_name):
     if content:
         file = open(file_name, "w")
@@ -1547,6 +1576,12 @@ def file_writer(content, file_name):
                 string = str(content[i].line) + ".\t" + str(content[i]) + " "
         file.write(string)
         file.close()
+
+
+def initial_error_writer():
+    file = open("lexical_errors.txt", "w")
+    file.write("There is no lexical error.")
+    file.close()
 
 
 def symbol_writer():
@@ -1566,42 +1601,6 @@ def write_syntax_error():
                 file.write(str(syntax_error_list[i]) + "\n")
     else:
         file.write("There is no syntax error.")
-    file.close()
-
-
-def write_parse_tree():
-    global rootNode
-
-    file = open("parse_tree.txt", "w", encoding="utf-8")
-    for pre, _, node in RenderTree(rootNode):
-        file.write(("%s%s" % (pre, node.name)) + "\n")
-    file.close()
-
-
-def write_three_code_address():
-    global three_code_address_list
-    file = open("output.txt", "w")
-    if len(three_code_address_list) != 0:
-        for i in range(len(three_code_address_list)):
-            if i == len(three_code_address_list) - 1:
-                file.write(str(i) + "\t" + str(three_code_address_list[i]))
-            else:
-                file.write(str(i) + "\t" + str(three_code_address_list[i]) + "\n")
-    else:
-        file.write("")
-    file.close()
-
-
-def write_semantic_error():
-    file = open("semantic_errors.txt", "w")
-    if len(semantic_error_list) != 0:
-        for i in range(len(semantic_error_list)):
-            if i == len(semantic_error_list) - 1:
-                file.write(str(semantic_error_list[i]))
-            else:
-                file.write(str(semantic_error_list[i]) + "\n")
-    else:
-        file.write("The input program is semantically correct.")
     file.close()
 
 
