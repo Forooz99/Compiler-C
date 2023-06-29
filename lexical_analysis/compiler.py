@@ -123,6 +123,7 @@ distance_from_save = 0
 isFirstFun = True
 savedJump = 0
 isOutput = False
+outputInput = None
 func_first_line = 0
 
 
@@ -254,7 +255,7 @@ class ACTION(Enum):
     CLEARSTACK = "CLEARSTACK"
     SETFUNADDRESS = "SETFUNADDRESS"
     RETURN_VOID = "RETURN_VOID"
-    RETURN_INT = "RETURN_INT" 
+    RETURN_INT = "RETURN_INT"
 
 
 class ADDRESSING_MODE(Enum):
@@ -357,9 +358,9 @@ def code_gen(action):
         return_int()
     elif action == ACTION.RETURN_VOID:
         return_void()
-    
 
-    
+
+
 def return_void():
     global distance_from_save
     x = getTemp()
@@ -618,7 +619,7 @@ def jump_until():
 def funDeclare():
     global pb_pointer, scopeNumber, savedJump
     savedJump = pb_pointer
-    ThreeCodeAddress(ACTION.JP, str(pb_pointer + 1))
+    ThreeCodeAddress(ACTION.JP, str(pb_pointer))
     setFirstLine(previousToken.lexeme, len(three_code_address_list))
     scopeNumber += 1
 
@@ -630,7 +631,7 @@ def clearStack():
 
 def setFunAddress():
     if not isFirstFun:
-        three_code_address_list[savedJump].num1 = pb_pointer + 1
+        three_code_address_list[savedJump].num1 = pb_pointer
 
 
 def write_three_code_address():
@@ -1386,7 +1387,7 @@ def term_prime(parent_node):
 
 
 def factor_prime(parent_node):
-    global lookahead, currentState, isOutput
+    global lookahead, currentState, isOutput, outputInput
     if lookahead.lexeme == "(":  # Factor-prime -> ( Args #PRINT )
         currentState = "Factor-prime"
         func_first_line = getFirstLine(previousToken.lexeme)
@@ -1394,9 +1395,12 @@ def factor_prime(parent_node):
         match("(", node)
         args(node)
         match(")", node)
+        code_gen(ACTION.PRINT)
         if isOutput:
+            outputInput = previousToken.lexeme
             code_gen(ACTION.PRINT)
             isOutput = False
+        match(")", node)
     elif checkError("Factor-prime", True, parent_node):
         factor_prime(parent_node)
 
