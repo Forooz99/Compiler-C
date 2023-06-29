@@ -624,7 +624,8 @@ def funDeclare():
 
 
 def clearStack():
-    semantic_stack.pop()
+    if len(semantic_stack) == 0:
+        semantic_stack.pop()
 
 
 def setFunAddress():
@@ -1393,7 +1394,9 @@ def factor_prime(parent_node):
         match("(", node)
         args(node)
         match(")", node)
-        code_gen(ACTION.PRINT)
+        if isOutput:
+            code_gen(ACTION.PRINT)
+            isOutput = False
     elif checkError("Factor-prime", True, parent_node):
         factor_prime(parent_node)
 
