@@ -120,6 +120,9 @@ start_of_save_area = 3000
 function_pointer = 6000
 save_area_temp = 0
 distance_from_save = 0
+isFirstFun = True
+savedJump = 0
+isOutput = False
 func_first_line = 0
 
 
@@ -158,19 +161,18 @@ class SEMANTIC_ACTION(Enum):
 
 
 def semantic_check(action):
-   return
-    # if action == SEMANTIC_ACTION.VARTYPE:
-    #     varType()
-    # elif action == SEMANTIC_ACTION.SCOPING:
-    #     scoping()
-    # elif action == SEMANTIC_ACTION.PARAMNUM:
-    #     paramNum()
-    # elif action == SEMANTIC_ACTION.BREAK:
-    #     doBreak()
-    # elif action == SEMANTIC_ACTION.TYPEMISMATCH:
-    #     typeMismatch()
-    # elif action == SEMANTIC_ACTION.PARAMTYPE:
-    #     paramType()
+    if action == SEMANTIC_ACTION.VARTYPE:
+        varType()
+    elif action == SEMANTIC_ACTION.SCOPING:
+        scoping()
+    elif action == SEMANTIC_ACTION.PARAMNUM:
+        paramNum()
+    elif action == SEMANTIC_ACTION.BREAK:
+        doBreak()
+    elif action == SEMANTIC_ACTION.TYPEMISMATCH:
+        typeMismatch()
+    elif action == SEMANTIC_ACTION.PARAMTYPE:
+        paramType()
 
 
 def varType():
@@ -193,8 +195,7 @@ def paramNum():
 
 def doBreak():
     global lookahead
-    token = lookahead
-    Semantic_Error(token, "No 'repeat ... until' found for 'break'.")
+    Semantic_Error(lookahead, "No 'repeat ... until' found for 'break'.")
 
 
 def typeMismatch():
@@ -221,7 +222,6 @@ def write_semantic_error():
 # ########## Code Generation ########## #
 class ACTION(Enum):
     BYTE = "BYTE"
-    MAINFUN = "MAINFUN"
     ASSIGN = "ASSIGN"
     ADD = "ADD"
     MULT = "MULT"
@@ -251,6 +251,8 @@ class ACTION(Enum):
     SAVE_RETURN_AND_JUMP = "SAVE_RETURN_AND_JUMP"
     GOTO_SAVE_AREA = "GOTO_SAVE_AREA"
     READ_VALUE = "READ_VALUE"
+    CLEARSTACK = "CLEARSTACK"
+    SETFUNADDRESS = "SETFUNADDRESS"
     RETURN_VOID = "RETURN_VOID"
     RETURN_INT = "RETURN_INT" 
 
@@ -297,9 +299,7 @@ def getParameter(t):  # for defining addressing Mode
 
 
 def code_gen(action):
-    if action == ACTION.MAINFUN:
-        mainFun()
-    elif action == ACTION.PUSHID:
+    if action == ACTION.PUSHID:
         pushId()
     elif action == ACTION.INITIALIZE:
         initialize()
@@ -349,6 +349,10 @@ def code_gen(action):
         goto_save_area()
     elif action == ACTION.READ_VALUE:
         read_value()
+    elif action == ACTION.CLEARSTACK:
+        clearStack()
+    elif action == ACTION.SETFUNADDRESS:
+        setFunAddress()
     elif action == ACTION.RETURN_INT:
         return_int()
     elif action == ACTION.RETURN_VOID:
@@ -427,11 +431,7 @@ def byte():
     ThreeCodeAddress(ACTION.ASSIGN, "#4", "0", addr1=ADDRESSING_MODE.IMMEDIATE)
 
 
-def mainFun():
-    ThreeCodeAddress(ACTION.JP, str(pb_pointer + 1))
-
-
-def pushId(): #debug
+def pushId():
     if lookahead.lexeme != "main" and lookahead.lexeme != "output":
         semantic_stack.append(lookahead)
 
@@ -439,8 +439,6 @@ def pushId(): #debug
 def initialize():
     temp = getTemp()
     identifier = semantic_stack.pop()
-    type = semantic_stack[-1]
-    setVarTypeForToken(identifier.lexeme, type.lexeme)
     setTempForToken(identifier.lexeme, temp)  # add address to symbol tbl
     ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
     setScope(identifier.lexeme, scopeNumber)
@@ -467,14 +465,14 @@ def array():
     semantic_stack.append(identifier)  # for semantic check
 
 
-def assign(): #debug
+def assign():
     global semantic_stack
     t1 = semantic_stack.pop()
     #t2 = semantic_stack.pop()
     ThreeCodeAddress(ACTION.ASSIGN, getParameter(t1), getParameter(semantic_stack[-1]))
 
 
-def output(): #debug
+def output():
     #t = semantic_stack.pop()
     ThreeCodeAddress(ACTION.PRINT, getParameter(semantic_stack[-1]))
 
@@ -618,11 +616,20 @@ def jump_until():
 
 
 def funDeclare():
-    global pb_pointer, scopeNumber
-    # semantic_stack.append(pb_pointer)
-    # ThreeCodeAddress(ACTION.JP)
-    # setFirstLine(previousToken.lexeme, len(three_code_address_list))
-    # scopeNumber += 1
+    global pb_pointer, scopeNumber, savedJump
+    savedJump = pb_pointer
+    ThreeCodeAddress(ACTION.JP, str(pb_pointer + 1))
+    setFirstLine(previousToken.lexeme, len(three_code_address_list))
+    scopeNumber += 1
+
+
+def clearStack():
+    semantic_stack.pop()
+
+
+def setFunAddress():
+    if not isFirstFun:
+        three_code_address_list[savedJump].num1 = pb_pointer + 1
 
 
 def write_three_code_address():
@@ -788,15 +795,13 @@ def declaration_initial(parent_node):
 
 def type_specifier(parent_node):
     global lookahead, currentState
-    if lookahead.lexeme == "int":  # Type-specifier -> #PUSHID int
+    if lookahead.lexeme == "int":  # Type-specifier -> int
         currentState = "Type-specifier"
         node = Node(currentState, parent_node)
-        code_gen(ACTION.PUSHID)
         match("int", node)
-    elif lookahead.lexeme == "void":  # Type-specifier -> #PUSHID void
+    elif lookahead.lexeme == "void":  # Type-specifier -> void
         currentState = "Type-specifier"
         node = Node(currentState, parent_node)
-        code_gen(ACTION.PUSHID)
         match("void", node)
     elif checkError("Type-specifier"):
         type_specifier(parent_node)
@@ -804,29 +809,29 @@ def type_specifier(parent_node):
 
 def declaration_prime(parent_node):
     global lookahead, currentState
-    # Declaration-prime -> #MAINFUN Fun-declaration-prime
+    # Declaration-prime -> Fun-declaration-prime
     if lookahead.lexeme in first("Fun-declaration-prime"):
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
-        code_gen(ACTION.MAINFUN)
+        code_gen(ACTION.CLEARSTACK)
         fun_declaration_prime(node)
     # Declaration-prime -> Var_declaration_prime #VARTYPE
     elif lookahead.lexeme in first("Var-declaration-prime"):
         currentState = "Declaration-prime"
         node = Node(currentState, parent_node)
         var_declaration_prime(node)
-        semantic_check(SEMANTIC_ACTION.VARTYPE)
     elif checkError("Declaration-prime"):
         declaration_prime(parent_node)
 
 
 def fun_declaration_prime(parent_node):
-    global lookahead, currentState, isAnyFunDeclared
+    global lookahead, currentState, isFirstFun
     if lookahead.lexeme == "(":  # Fun-declaration-prime -> ( Params ) Compound-stmt
-        isAnyFunDeclared = True
+        code_gen(ACTION.SETFUNADDRESS)
         code_gen(ACTION.FUNDECLARE)
         currentState = "Fun-declaration-prime"
         node = Node(currentState, parent_node)
+        isFirstFun = False
         match("(", node)
         code_gen(ACTION.GOTO_SAVE_AREA)
         params(node)
@@ -862,10 +867,10 @@ def params(parent_node):
         currentState = "Params"
         node = Node(currentState, parent_node)
         match("int", node)
-        code_gen(ACTION.PUSHID)
+        # code_gen(ACTION.PUSHID)
+        # code_gen(ACTION.INITIALIZE)
         match(Token_Type.ID, node)
         param_prime(node)
-        code_gen(ACTION.INITIALIZE)
         code_gen(ACTION.READ_VALUE)
         param_list(node)
     elif lookahead.lexeme == "void":  # Params -> void
@@ -1068,7 +1073,7 @@ def additive_expression_zegond(parent_node):
 
 
 def expression(parent_node): #debug
-    global lookahead, currentState
+    global lookahead, currentState, isOutput
     if lookahead.lexeme in first("Simple-expression-zegond") or lookahead.type.value in first(
             "Simple-expression-zegond"):  # Expression -> Simple_expression_zegond
         currentState = "Expression"
@@ -1078,7 +1083,8 @@ def expression(parent_node): #debug
         currentState = "Expression"
         node = Node(currentState, parent_node)
         code_gen(ACTION.PUSHID)
-        semantic_check(SEMANTIC_ACTION.SCOPING)
+        if lookahead.lexeme == "output":
+            isOutput = True
         match(Token_Type.ID, node)
         b(node)
     elif checkError("Expression"):
@@ -1197,7 +1203,6 @@ def factor(parent_node):
         currentState = "Factor"
         node = Node(currentState, parent_node)
         code_gen(ACTION.PUSHID)
-        semantic_check(SEMANTIC_ACTION.SCOPING)
         match(Token_Type.ID, node)
         var_call_prime(node)
     elif lookahead.type == Token_Type.NUM:  # Factor -> #PUSHID NUM
@@ -1259,7 +1264,7 @@ def term_zegond(parent_node):
         term_zegond(parent_node)
 
 
-def factor_zegond(parent_node): #debug
+def factor_zegond(parent_node):
     global lookahead, currentState
     if lookahead.lexeme == "(":  # Factor-zegond -> ( Expression )
         currentState = "Factor-zegond"
@@ -1380,7 +1385,7 @@ def term_prime(parent_node):
 
 
 def factor_prime(parent_node):
-    global lookahead, currentState, func_first_line
+    global lookahead, currentState, isOutput
     if lookahead.lexeme == "(":  # Factor-prime -> ( Args #PRINT )
         currentState = "Factor-prime"
         func_first_line = getFirstLine(previousToken.lexeme)
@@ -1388,7 +1393,7 @@ def factor_prime(parent_node):
         match("(", node)
         args(node)
         match(")", node)
-        #code_gen(ACTION.PRINT)
+        code_gen(ACTION.PRINT)
     elif checkError("Factor-prime", True, parent_node):
         factor_prime(parent_node)
 
@@ -1419,7 +1424,7 @@ class Token:
         self.type = type
         self.line = line
         self.address = 0
-        self.varType = ""
+        self.varType = "int"
         self.numberOfArgument = None
         self.argList = []
         self.returnVal = None
