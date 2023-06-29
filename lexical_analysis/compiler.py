@@ -120,6 +120,7 @@ start_of_save_area = 3000
 function_pointer = 6000
 save_area_temp = 0
 distance_from_save = 0
+func_first_line = 0
 
 
 def main():
@@ -250,6 +251,8 @@ class ACTION(Enum):
     SAVE_RETURN_AND_JUMP = "SAVE_RETURN_AND_JUMP"
     GOTO_SAVE_AREA = "GOTO_SAVE_AREA"
     READ_VALUE = "READ_VALUE"
+    RETURN_VOID = "RETURN_VOID"
+    RETURN_INT = "RETURN_INT" 
 
 
 class ADDRESSING_MODE(Enum):
@@ -346,6 +349,37 @@ def code_gen(action):
         goto_save_area()
     elif action == ACTION.READ_VALUE:
         read_value()
+    elif action == ACTION.RETURN_INT:
+        return_int()
+    elif action == ACTION.RETURN_VOID:
+        return_void()
+    
+
+    
+def return_void():
+    global distance_from_save
+    x = getTemp()
+    ThreeCodeAddress(ACTION.ADD, save_area_temp, "#" + str(distance_from_save), x)
+    distance_from_save += 4
+    ThreeCodeAddress(ACTION.JP, "@" + str(x))
+    return
+
+
+def return_int():
+    global distance_from_save
+    result = semantic_stack.pop()
+    #print(result)
+    if result.type == Token_Type.ID:
+        ThreeCodeAddress(ACTION.ASSIGN, getTempOfToken(result.lexeme),"@"+str(save_area_temp))
+    elif result.type == Token_Type.NUM:
+        ThreeCodeAddress(ACTION.ASSIGN, "#" + result.lexeme,"@"+str(save_area_temp))
+    x = getTemp()
+    ThreeCodeAddress(ACTION.ADD, save_area_temp, "#" + str(distance_from_save), x)
+    distance_from_save += 4
+    ThreeCodeAddress(ACTION.JP, "@" + str(x))
+
+    return
+
 
 
 def goto_save_area():
@@ -374,6 +408,7 @@ def allocate_save_area():
 def save_arg():
     global start_of_save_area
     argument = semantic_stack.pop()
+    print(argument,"   ", lineno)
     if argument.type == Token_Type.NUM:
         ThreeCodeAddress(ACTION.ASSIGN, "#" + argument.lexeme, str(start_of_save_area))
     elif argument.type == Token_Type.ID:
@@ -385,7 +420,7 @@ def save_return_and_jump():
     global start_of_save_area
     ThreeCodeAddress(ACTION.ASSIGN, str(pb_pointer + 2), str(start_of_save_area))
     start_of_save_area += 4
-    # ThreeCodeAddress(ACTION.JP, )
+    ThreeCodeAddress(ACTION.JP, func_first_line)
 
 
 def byte():
@@ -584,10 +619,10 @@ def jump_until():
 
 def funDeclare():
     global pb_pointer, scopeNumber
-    semantic_stack.append(pb_pointer)
-    ThreeCodeAddress(ACTION.JP)
-    setFirstLine(previousToken.lexeme, len(three_code_address_list))
-    scopeNumber += 1
+    # semantic_stack.append(pb_pointer)
+    # ThreeCodeAddress(ACTION.JP)
+    # setFirstLine(previousToken.lexeme, len(three_code_address_list))
+    # scopeNumber += 1
 
 
 def write_three_code_address():
@@ -955,10 +990,12 @@ def return_stmt_prime(parent_node):
         currentState = "Return-stmt-prime"
         node = Node(currentState, parent_node)
         expression(node)
+        code_gen(ACTION.RETURN_INT)
         match(";", node)
     elif lookahead.lexeme == ";":  # Return-stmt-prime -> ;
         currentState = "Return-stmt-prime"
         node = Node(currentState, parent_node)
+        code_gen(ACTION.RETURN_VOID)
         match(";", node)
     elif checkError("Return-stmt-prime"):
         return_stmt_prime(parent_node)
@@ -1343,14 +1380,15 @@ def term_prime(parent_node):
 
 
 def factor_prime(parent_node):
-    global lookahead, currentState
+    global lookahead, currentState, func_first_line
     if lookahead.lexeme == "(":  # Factor-prime -> ( Args #PRINT )
         currentState = "Factor-prime"
+        func_first_line = getFirstLine(previousToken.lexeme)
         node = Node(currentState, parent_node)
         match("(", node)
         args(node)
         match(")", node)
-        code_gen(ACTION.PRINT)
+        #code_gen(ACTION.PRINT)
     elif checkError("Factor-prime", True, parent_node):
         factor_prime(parent_node)
 
