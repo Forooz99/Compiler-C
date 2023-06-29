@@ -114,8 +114,9 @@ follow_set = {
 semantic_stack = []
 tempAddress = 500
 pb_pointer = 0
-isAnyFunDeclared = False
+scopeNumber = 0
 previousToken = None
+
 
 def main():
     global input_file, lookahead
@@ -240,6 +241,11 @@ class ACTION(Enum):
     ARRAY = "ARRAY"
     SETADDRESS = "SETADDRESS"
     FUNDECLARE = "FUNDECLARE"
+    ALLOCATE_SAVE_AREA = "ALLOCATE_SAVE_AREA_AND_RETURN_AND_RESULT"  # put the save address up for function to use and allocate some space for result
+    SAVE_ARG = "SAVE_ARG"  # save the args for func
+    SAVE_RETURN_AND_JUMP = "SAVE_RETURN_AND_JUMP"
+    GOTO_SAVE_AREA = "GOTO_SAVE_AREA"
+    READ_VALUE = "READ_VALUE"
 
 
 class ADDRESSING_MODE(Enum):
@@ -326,6 +332,56 @@ def code_gen(action):
         byte()
     elif action == ACTION.FUNDECLARE:
         funDeclare()
+    elif action == ACTION.ALLOCATE_SAVE_AREA:
+        allocate_save_area()
+    elif action == ACTION.SAVE_ARG:
+        save_arg()
+    elif action == ACTION.SAVE_RETURN_AND_JUMP:
+        save_return_and_jump()
+    elif action == ACTION.GOTO_SAVE_AREA:
+        goto_save_area()
+    elif action == ACTION.READ_VALUE:
+        read_value()
+
+
+def goto_save_area():
+    global save_area_temp, distance_from_save
+    save_area_temp = getTemp()
+    ThreeCodeAddress(ACTION.ASSIGN, str(6000), last_temp)
+    distance_from_save = 4
+    return
+
+
+def read_value():
+    global distance_from_save
+    x = getTemp()
+    ThreeCodeAddress(ACTION.ADD, save_area_temp, "#" + str(distance_from_save), x)
+    distance_from_save += 4
+    ThreeCodeAddress(ACTION.ASSIGN, "@" + str(x), getTempOfToken(previousToken.lexeme))
+    return
+
+
+def allocate_save_area():
+    global function_pointer, start_of_save_area
+    ThreeCodeAddress(ACTION.ASSIGN, "#" + str(start_of_save_area), str(function_pointer))
+    start_of_save_area += 4
+
+
+def save_arg():
+    global start_of_save_area
+    argument = semantic_stack.pop()
+    if argument.type == Token_Type.NUM:
+        ThreeCodeAddress(ACTION.ASSIGN, "#" + argument.lexeme, str(start_of_save_area))
+    elif argument.type == Token_Type.ID:
+        ThreeCodeAddress(ACTION.ASSIGN, getParameter(argument), str(start_of_save_area))
+    start_of_save_area += 4
+
+
+def save_return_and_jump():
+    global start_of_save_area
+    ThreeCodeAddress(ACTION.ASSIGN, str(pb_pointer + 2), str(start_of_save_area))
+    start_of_save_area += 4
+    # ThreeCodeAddress(ACTION.JP, )
 
 
 def byte():
@@ -348,8 +404,7 @@ def initialize():
     setVarTypeForToken(identifier.lexeme, type.lexeme)
     setTempForToken(identifier.lexeme, temp)  # add address to symbol tbl
     ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
-    if isAnyFunDeclared:
-        setScope(identifier.lexeme,  1)
+    setScope(identifier.lexeme, scopeNumber)
     semantic_stack.append(identifier)  # for semantic check
 
 
@@ -524,10 +579,11 @@ def jump_until():
 
 
 def funDeclare():
-    global pb_pointer
+    global pb_pointer, scopeNumber
     semantic_stack.append(pb_pointer)
     ThreeCodeAddress(ACTION.JP)
     setFirstLine(previousToken.lexeme, len(three_code_address_list))
+    scopeNumber += 1
 
 
 def write_three_code_address():
@@ -733,6 +789,7 @@ def fun_declaration_prime(parent_node):
         currentState = "Fun-declaration-prime"
         node = Node(currentState, parent_node)
         match("(", node)
+        code_gen(ACTION.GOTO_SAVE_AREA)
         params(node)
         match(")", node)
         compound_stmt(node)
@@ -770,6 +827,7 @@ def params(parent_node):
         match(Token_Type.ID, node)
         param_prime(node)
         code_gen(ACTION.INITIALIZE)
+        code_gen(ACTION.READ_VALUE)
         param_list(node)
     elif lookahead.lexeme == "void":  # Params -> void
         currentState = "Params"
@@ -1116,7 +1174,9 @@ def arg_list(parent_node):
             "Expression Arg-list-prime"):  # Arg-list -> Expression Arg-list-prime
         currentState = "Arg-list"
         node = Node(currentState, parent_node)
+        code_gen(ACTION.ALLOCATE_SAVE_AREA)
         expression(node)
+        code_gen(ACTION.SAVE_ARG)
         arg_list_prime(node)
     elif checkError("Arg-list"):
         arg_list(parent_node)
@@ -1128,6 +1188,7 @@ def args(parent_node):
         currentState = "Args"
         node = Node(currentState, parent_node)
         arg_list(node)
+        code_gen(ACTION.SAVE_RETURN_AND_JUMP)
     elif checkError("Args", True, parent_node):
         args(parent_node)
 
@@ -1139,6 +1200,7 @@ def arg_list_prime(parent_node):
         node = Node(currentState, parent_node)
         match(",", node)
         expression(node)
+        code_gen(ACTION.SAVE_ARG)
         arg_list_prime(node)
     elif checkError("Arg-list-prime", True, parent_node):
         arg_list_prime(parent_node)
