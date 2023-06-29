@@ -116,6 +116,10 @@ tempAddress = 500
 pb_pointer = 0
 scopeNumber = 0
 previousToken = None
+start_of_save_area = 3000
+function_pointer = 6000
+save_area_temp = 0
+distance_from_save = 0
 
 
 def main():
@@ -347,7 +351,7 @@ def code_gen(action):
 def goto_save_area():
     global save_area_temp, distance_from_save
     save_area_temp = getTemp()
-    ThreeCodeAddress(ACTION.ASSIGN, str(6000), last_temp)
+    ThreeCodeAddress(ACTION.ASSIGN, str(6000), save_area_temp)
     distance_from_save = 4
     return
 
