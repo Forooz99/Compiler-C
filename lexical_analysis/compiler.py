@@ -114,7 +114,8 @@ follow_set = {
 semantic_stack = []
 tempAddress = 500
 pb_pointer = 0
-
+isAnyFunDeclared = False
+previousToken = None
 
 def main():
     global input_file, lookahead
@@ -151,19 +152,19 @@ class SEMANTIC_ACTION(Enum):
 
 
 def semantic_check(action):
-    
-    if action == SEMANTIC_ACTION.VARTYPE:
-        varType()
-    elif action == SEMANTIC_ACTION.SCOPING:
-        scoping()
-    elif action == SEMANTIC_ACTION.PARAMNUM:
-        paramNum()
-    elif action == SEMANTIC_ACTION.BREAK:
-        doBreak()
-    elif action == SEMANTIC_ACTION.TYPEMISMATCH:
-        typeMismatch()
-    elif action == SEMANTIC_ACTION.PARAMTYPE:
-        paramType()
+   return
+    # if action == SEMANTIC_ACTION.VARTYPE:
+    #     varType()
+    # elif action == SEMANTIC_ACTION.SCOPING:
+    #     scoping()
+    # elif action == SEMANTIC_ACTION.PARAMNUM:
+    #     paramNum()
+    # elif action == SEMANTIC_ACTION.BREAK:
+    #     doBreak()
+    # elif action == SEMANTIC_ACTION.TYPEMISMATCH:
+    #     typeMismatch()
+    # elif action == SEMANTIC_ACTION.PARAMTYPE:
+    #     paramType()
 
 
 def varType():
@@ -238,6 +239,7 @@ class ACTION(Enum):
     JPFUNTIL = "JPFUNTIL"
     ARRAY = "ARRAY"
     SETADDRESS = "SETADDRESS"
+    FUNDECLARE = "FUNDECLARE"
 
 
 class ADDRESSING_MODE(Enum):
@@ -282,7 +284,6 @@ def getParameter(t):  # for defining addressing Mode
 
 
 def code_gen(action):
-    
     if action == ACTION.MAINFUN:
         mainFun()
     elif action == ACTION.PUSHID:
@@ -323,6 +324,8 @@ def code_gen(action):
         jump_until()
     elif action == ACTION.BYTE:
         byte()
+    elif action == ACTION.FUNDECLARE:
+        funDeclare()
 
 
 def byte():
@@ -345,6 +348,8 @@ def initialize():
     setVarTypeForToken(identifier.lexeme, type.lexeme)
     setTempForToken(identifier.lexeme, temp)  # add address to symbol tbl
     ThreeCodeAddress(ACTION.ASSIGN, "#0", str(temp))
+    if isAnyFunDeclared:
+        setScope(identifier.lexeme,  1)
     semantic_stack.append(identifier)  # for semantic check
 
 
@@ -464,7 +469,6 @@ def jpf_save():
     global pb_pointer
     head = semantic_stack.pop()
     result = semantic_stack.pop()
-
     three_code_address_list[head].action = ACTION.JPF
     three_code_address_list[head].num1 = result
     three_code_address_list[head].num2 = (pb_pointer + 1)
@@ -474,9 +478,7 @@ def jpf_save():
 def jp_save():  # jumps to the last saved spot
     global pb_pointer
     head = semantic_stack.pop()
-    
     three_code_address_list[head]= ThreeCodeAddress(ACTION.JP, pb_pointer)
-    
     three_code_address_list.pop()
 
 
@@ -499,35 +501,33 @@ def jump_for_break():
         semantic_check(SEMANTIC_ACTION.BREAK)
     else:
         stat = False
-        for i in range(1,len(semantic_stack)):
+        for i in range(1, len(semantic_stack)):
             r = semantic_stack.copy()
             r.reverse()
-            
             if type(r[i]) == str:
                if r[i][-1] == "!":
-                ThreeCodeAddress(ACTION.JP, int(r[i][0:-1]))
-                stat = True
-                break 
-            
+                    ThreeCodeAddress(ACTION.JP, int(r[i][0:-1]))
+                    stat = True
+                    break
         if not stat:        
             semantic_check(SEMANTIC_ACTION.BREAK)
        
-            
-
 
 def jump_until():
     global pb_pointer
     result = semantic_stack.pop()
     head = semantic_stack.pop()
-    print(result)
-    print(head)
-
     ThreeCodeAddress(ACTION.JPF, result, head)
-    
     head = int(semantic_stack.pop()[0:-1])
-    print(head)
     three_code_address_list[head].action = ACTION.JP
     three_code_address_list[head].num1 = pb_pointer
+
+
+def funDeclare():
+    global pb_pointer
+    semantic_stack.append(pb_pointer)
+    ThreeCodeAddress(ACTION.JP)
+    setFirstLine(previousToken.lexeme, len(three_code_address_list))
 
 
 def write_three_code_address():
@@ -597,7 +597,7 @@ def first(string):
 
 
 def match(terminal, parent):
-    global lookahead, currentState
+    global lookahead, currentState, previousToken
     if terminal == "$":
         Node("$", parent)
     elif ((terminal == Token_Type.ID or terminal == Token_Type.NUM) and lookahead.type == terminal) or lookahead.lexeme == terminal:
@@ -608,6 +608,7 @@ def match(terminal, parent):
                 Node("$", parent)
         else:
             Node(str(lookahead), parent)
+            previousToken = lookahead
             lookahead = get_next_token(input_file)
     else:
         if terminal == Token_Type.ID or terminal == Token_Type.NUM:
@@ -725,8 +726,10 @@ def declaration_prime(parent_node):
 
 
 def fun_declaration_prime(parent_node):
-    global lookahead, currentState
+    global lookahead, currentState, isAnyFunDeclared
     if lookahead.lexeme == "(":  # Fun-declaration-prime -> ( Params ) Compound-stmt
+        isAnyFunDeclared = True
+        code_gen(ACTION.FUNDECLARE)
         currentState = "Fun-declaration-prime"
         node = Node(currentState, parent_node)
         match("(", node)
@@ -832,13 +835,12 @@ def expression_stmt(parent_node):
         node = Node(currentState, parent_node)
         expression(node)
         match(";", node)
-        semantic_stack.pop()
+        # semantic_stack.pop()
     elif lookahead.lexeme == "break":  # Expression-stmt -> break ;
         currentState = "Expression-stmt"
         node = Node(currentState, parent_node)
         code_gen(ACTION.JPBREAK)
         match("break", node)
-        
         match(";", node)
     elif lookahead.lexeme == ";":  # Expression-stmt -> ;
         currentState = "Expression-stmt"
@@ -1314,7 +1316,11 @@ class Token:
         self.line = line
         self.address = 0
         self.varType = ""
-        self.numberOfArgument = 0
+        self.numberOfArgument = None
+        self.argList = []
+        self.returnVal = None
+        self.scope = 0
+        self.firstLine = None
         if (type == Token_Type.ID or type == Token_Type.KEYWORD) and lexeme not in symbol_table:
             symbol_table.append(self)
         if needToAddToTokenList and self not in token_list:
@@ -1346,6 +1352,36 @@ def getVarTypeOfToken(lexeme):
     for t in symbol_table:
         if t.lexeme == lexeme:
             return t.varType
+
+
+def setScope(lexeme, scope):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            t.scope = scope
+
+
+def getScope(lexeme):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            return t.scope
+
+
+def setFirstLine(lexeme, lineNo):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            t.firstLine = lineNo
+
+
+def getFirstLine(lexeme):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            return t.firstLine
+
+
+def addParameterToFun(lexeme, param):
+    for t in symbol_table:
+        if t.lexeme == lexeme:
+            t.argList.append(param)
 
 
 class Syntax_Error_Type(Enum):
