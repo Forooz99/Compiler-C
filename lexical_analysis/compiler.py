@@ -258,23 +258,13 @@ class ACTION(Enum):
     RETURN_INT = "RETURN_INT"
 
 
-class ADDRESSING_MODE(Enum):
-    IMMEDIATE = '#'
-    INDIRECT = '@'
-    DIRECT = ''
-
-
 class ThreeCodeAddress:
-    def __init__(self, action=ACTION.ASSIGN, num1=" ", num2=" ", num3=" ", addr1=ADDRESSING_MODE.DIRECT,
-                 addr2=ADDRESSING_MODE.DIRECT, addr3=ADDRESSING_MODE.DIRECT):
+    def __init__(self, action=ACTION.ASSIGN, num1=" ", num2=" ", num3=" "):
         global pb_pointer
         self.action = action
         self.num1 = num1
         self.num2 = num2
         self.num3 = num3
-        self.addr1 = addr1
-        self.addr2 = addr2
-        self.addr3 = addr3
         three_code_address_list.append(self)
         pb_pointer += 1
 
@@ -360,7 +350,6 @@ def code_gen(action):
         return_void()
 
 
-
 def return_void():
     global distance_from_save
     x = getTemp()
@@ -373,9 +362,8 @@ def return_void():
 def return_int():
     global distance_from_save
     result = semantic_stack.pop()
-    #print(result)
     if result.type == Token_Type.ID:
-        ThreeCodeAddress(ACTION.ASSIGN, getTempOfToken(result.lexeme),"@"+str(save_area_temp))
+        ThreeCodeAddress(ACTION.ASSIGN, getTempOfToken(result.lexeme), "@"+str(save_area_temp))
     elif result.type == Token_Type.NUM:
         ThreeCodeAddress(ACTION.ASSIGN, "#" + result.lexeme,"@"+str(save_area_temp))
     x = getTemp()
@@ -384,7 +372,6 @@ def return_int():
     ThreeCodeAddress(ACTION.JP, "@" + str(x))
 
     return
-
 
 
 def goto_save_area():
@@ -413,7 +400,6 @@ def allocate_save_area():
 def save_arg():
     global start_of_save_area
     argument = semantic_stack.pop()
-    print(argument,"   ", lineno)
     if argument.type == Token_Type.NUM:
         ThreeCodeAddress(ACTION.ASSIGN, "#" + argument.lexeme, str(start_of_save_area))
     elif argument.type == Token_Type.ID:
@@ -429,7 +415,10 @@ def save_return_and_jump():
 
 
 def byte():
-    ThreeCodeAddress(ACTION.ASSIGN, "#4", "0", addr1=ADDRESSING_MODE.IMMEDIATE)
+    # (ASSIGN,  # 500, 100, )
+    # (ASSIGN,  # 0, 10, )
+    ThreeCodeAddress(ACTION.ASSIGN, "#500", "100")
+    ThreeCodeAddress(ACTION.ASSIGN, "#0", "10")
 
 
 def pushId():
@@ -631,7 +620,7 @@ def clearStack():
 
 def setFunAddress():
     if not isFirstFun:
-        three_code_address_list[savedJump].num1 = pb_pointer
+        three_code_address_list[savedJump].num1 = pb_pointer - 1
 
 
 def write_three_code_address():
